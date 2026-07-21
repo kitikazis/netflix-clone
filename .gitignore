@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Coverage / tests
+coverage/
+.nyc_output/
+
+# Editor / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Media / uploads (local dev artifacts)
+uploads/
+tmp/
+*.mp4
+*.m3u8
+*.ts.tmp
+
+# Next.js (later phases)
+.next/
+out/

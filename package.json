@@ -1,0 +1,22 @@
+{
+  "name": "netflix-clone",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Netflix clone — production-grade practice project (NestJS + Next.js)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev --workspace @netflix-clone/api",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

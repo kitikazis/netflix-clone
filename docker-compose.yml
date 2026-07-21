@@ -1,0 +1,42 @@
+# Reproducible dev infrastructure for the Netflix clone.
+# Values fall back to sane defaults so `docker compose up -d` works with zero config.
+# Keep apps/api/.env DATABASE_* / REDIS_* in sync with the defaults below.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: netflix_clone_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-netflix}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-netflix}
+      POSTGRES_DB: ${DATABASE_NAME:-netflix_clone}
+    # Host port 15432 by default: this machine has native Postgres on 5432 AND 5433,
+    # so we map to a high, conflict-free port. Container-internal port stays 5432.
+    ports:
+      - "${DATABASE_PORT:-15432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-netflix} -d ${DATABASE_NAME:-netflix_clone}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: netflix_clone_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
