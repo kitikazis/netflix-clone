@@ -83,18 +83,24 @@ export function ReproductorHls({
     setNivel(-1);
 
     let hls: Hls | null = null;
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = src; // Safari / iOS: HLS nativo (la calidad la gestiona el SO)
-    } else if (Hls.isSupported()) {
+
+    /**
+     * hls.js tiene prioridad sobre la reproducción nativa.
+     *
+     * El orden inverso —comprobar primero `canPlayType`— parece razonable pero
+     * rompe el selector de calidad: varios navegadores basados en Chromium
+     * responden que saben reproducir HLS, se toma el camino nativo, y entonces
+     * las variantes las gestiona el navegador sin exponerlas. El vídeo se ve,
+     * pero no hay lista de calidades que ofrecer.
+     *
+     * Con hls.js delante, la escalera está disponible en todos los navegadores
+     * que lo soportan, y el camino nativo queda para Safari e iOS, donde
+     * hls.js no funciona porque no hay Media Source Extensions.
+     */
+    if (Hls.isSupported()) {
       hls = new Hls({ enableWorker: true });
       hlsRef.current = hls;
 
-      // Los escuchadores van ANTES de loadSource. Si se registran después, con
-      // un manifiesto que llega rápido —servido por CDN o ya en caché—
-      // MANIFEST_PARSED se dispara sin que nadie lo oiga y la lista de
-      // calidades se queda vacía: el selector aparece desactivado y no hay
-      // forma de elegir resolución. Es una carrera que se gana o se pierde
-      // según la latencia, así que en local parece funcionar y en producción no.
       hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => setNiveles(data.levels));
       hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => {
         setNivelReal(data.level);
@@ -119,6 +125,10 @@ export function ReproductorHls({
 
       hls.loadSource(src);
       hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari e iOS: sin MSE, hls.js no puede funcionar. La calidad la
+      // gestiona el sistema y no hay escalera que ofrecer.
+      video.src = src;
     } else {
       setError('Tu navegador no soporta HLS');
     }
