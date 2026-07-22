@@ -1,0 +1,42 @@
+# Despliegue del front (apps/web) en Netlify.
+#
+# `base` apunta al paquete del monorepo: Netlify cambia ahí el directorio de
+# trabajo, detecta que es un workspace de npm y lanza la instalación en la raíz
+# del repo, que es donde está el package-lock.json.
+#
+# Antes del PRIMER despliegue hay que definir las variables de entorno en el
+# panel (Site configuration -> Environment variables). Ver notas abajo.
+
+[build]
+  base = "apps/web"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # El proyecto exige Node >= 22 (engines en el package.json de la raíz). Sin
+  # fijarlo, Netlify usa su versión por defecto, que cambia con el tiempo.
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Runtime de Next: gestiona el SSR (cada ruta dinámica pasa a ser una función),
+# las imágenes de next/image y los assets estáticos.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# --------------------------------------------------------------------------
+# Variables que hay que definir en el panel de Netlify
+# --------------------------------------------------------------------------
+#
+#   NEXT_PUBLIC_API_URL   URL pública de la API (la que llama el navegador).
+#                         Next la INCRUSTA en el bundle AL COMPILAR, así que
+#                         tiene que existir antes del primer build; si la
+#                         cambias después, hay que relanzar el despliegue.
+#
+#   API_URL               URL que usa el SSR. En Netlify el SSR corre en las
+#                         funciones de Netlify, no junto a tu API, así que no
+#                         hay red interna: aquí va la MISMA URL pública que
+#                         arriba. (En el despliegue con docker-compose sí se
+#                         aprovecha la red interna y apunta a http://api:3000.)
+#
+# Y en la API hay que añadir el dominio de Netlify a CORS_ORIGINS, o el
+# navegador bloqueará las llamadas del reproductor y del login.

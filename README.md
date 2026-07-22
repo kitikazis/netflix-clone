@@ -287,6 +287,35 @@ Netlify y Vercel construyen Next con su propio adaptador y esa salida les estorb
 así que en esas plataformas no hay que hacer nada: basta con definir `API_URL` y
 `NEXT_PUBLIC_API_URL` en su panel de variables.
 
+#### Netlify
+
+`netlify.toml` en la raíz ya trae la configuración: `base = "apps/web"` (Netlify
+detecta el workspace de npm y ejecuta la instalación en la raíz del repo, que es
+donde vive el `package-lock.json`), Node 22 fijado y el runtime de Next, que
+convierte cada ruta dinámica en una función.
+
+Al conectar el repo, Netlify preguntará qué paquete del monorepo desplegar:
+elige **`@netflix-clone/web`**.
+
+Variables a definir en *Site configuration → Environment variables* **antes del
+primer despliegue**:
+
+| Variable | Valor |
+| --- | --- |
+| `NEXT_PUBLIC_API_URL` | URL pública de la API, p. ej. `https://tu-api.onrender.com/api/v1` |
+| `API_URL` | La **misma** URL pública |
+
+Las dos apuntan al mismo sitio, a diferencia del despliegue con docker-compose: en
+Netlify el SSR corre en funciones suyas, no junto a tu API, así que no hay red
+interna que aprovechar.
+
+Y recuerda añadir el dominio de Netlify a `CORS_ORIGINS` en la API, o el navegador
+bloqueará el login y los latidos de progreso.
+
+> Hasta que la API esté desplegada, el sitio construye y sirve bien, pero mostrará
+> el estado «SIN PORTADORA» del catálogo: es el comportamiento previsto cuando la
+> API no responde, no un fallo del despliegue.
+
 ### Imágenes
 
 | Imagen | Tamaño | Notas |

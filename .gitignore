@@ -41,4 +41,7 @@ storage/
 
 # Next.js (later phases)
 .next/
+
+# Netlify: artefactos de build (funciones empaquetadas, manifiestos, caché)
+.netlify/
 out/
