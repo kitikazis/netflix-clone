@@ -20,6 +20,9 @@ const redisProvider: Provider = {
       host: config.host,
       port: config.port,
       password: config.password,
+      // `{}` activa TLS con los valores por defecto de Node, que basta para los
+      // proveedores gestionados: presentan certificados de una CA pública.
+      ...(config.tls ? { tls: {} } : {}),
       // Fail fast if Redis is unreachable rather than buffering commands forever.
       maxRetriesPerRequest: 3,
       lazyConnect: false,

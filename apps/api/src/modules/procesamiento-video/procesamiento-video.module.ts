@@ -28,6 +28,9 @@ import { AlmacenamientoR2 } from './almacenamiento/almacenamiento-r2.service';
           host: config.host,
           port: config.port,
           password: config.password,
+          // BullMQ abre sus propias conexiones, así que el TLS hay que
+          // activarlo también aquí y no solo en el cliente compartido.
+          ...(config.tls ? { tls: {} } : {}),
         },
       }),
     }),

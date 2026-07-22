@@ -42,6 +42,10 @@ export const redisConfig = registerAs('redis', () => ({
   host: process.env.REDIS_HOST as string,
   port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
   password: process.env.REDIS_PASSWORD || undefined,
+  // Sin esto, la contraseña y el contenido (jti de refresh tokens, posiciones
+  // de reproducción) cruzan internet en claro. Imprescindible en cuanto Redis
+  // no esté en la misma red que la API.
+  tls: process.env.REDIS_TLS === 'true',
 }));
 
 export const jwtConfig = registerAs('jwt', () => ({

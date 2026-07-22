@@ -82,6 +82,11 @@ export class EnvironmentVariables {
   @IsString()
   REDIS_PASSWORD?: string;
 
+  /** 'true' para conectar por TLS. Necesario si Redis no está en tu red. */
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  REDIS_TLS?: string;
+
   // --- JWT (consumed from Phase 3; validated now so the config surface is complete) ---
   @IsString()
   @MinLength(16)

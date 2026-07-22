@@ -46,6 +46,12 @@ services:
         sync: false
       - key: REDIS_PASSWORD
         sync: false
+      # Ponlo a true SOLO si has activado TLS en el panel de Redis Cloud: si el
+      # servidor no habla TLS, el cliente falla con "wrong version number". Con
+      # Redis fuera de la red de la API, sin esto la contraseña y los datos
+      # cruzan internet en claro.
+      - key: REDIS_TLS
+        value: false
 
       # --- JWT (genera con: openssl rand -base64 48) ---
       - key: JWT_ACCESS_SECRET
