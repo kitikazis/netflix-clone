@@ -63,6 +63,11 @@ export class EnvironmentVariables {
   @IsString()
   DATABASE_NAME!: string;
 
+  /** 'true' para conectar por TLS. Obligatorio en Postgres gestionados. */
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  DATABASE_SSL?: string;
+
   // --- Redis ---
   @IsString()
   REDIS_HOST!: string;
@@ -120,6 +125,22 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsIn(['local', 'r2'])
   STORAGE_DRIVER?: string;
+
+  /**
+   * Endpoint S3 explícito. Si se define, el driver deja de derivar la URL de
+   * R2 y apunta a cualquier proveedor compatible (Supabase Storage, B2, MinIO).
+   */
+  @IsOptional()
+  @IsString()
+  S3_ENDPOINT?: string;
+
+  @IsOptional()
+  @IsString()
+  S3_REGION?: string;
+
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  S3_FORCE_PATH_STYLE?: string;
 
   @IsOptional()
   @IsString()

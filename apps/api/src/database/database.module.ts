@@ -24,6 +24,7 @@ import { appConfig, databaseConfig } from '@/config';
         username: db.user,
         password: db.password,
         database: db.name,
+        ssl: db.ssl ? { rejectUnauthorized: false } : false,
         autoLoadEntities: true,
         synchronize: false,
         migrationsRun: false,

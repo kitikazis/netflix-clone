@@ -41,11 +41,19 @@ export class AlmacenamientoR2 implements Almacenamiento {
 
   constructor(@Inject(storageConfig.KEY) config: ConfigType<typeof storageConfig>) {
     this.config = config.r2;
-    const { accountId, accessKeyId, secretAccessKey } = this.config;
-    if (accountId && accessKeyId && secretAccessKey) {
+    const { accountId, accessKeyId, secretAccessKey, endpoint } = this.config;
+
+    // El endpoint sale de S3_ENDPOINT si está; si no, se deriva de la cuenta de
+    // R2 como hasta ahora. Así el driver vale para cualquier S3 compatible
+    // (Supabase Storage, Backblaze B2, MinIO) sin cambiar el comportamiento
+    // existente: con solo las R2_* configuradas apunta a R2 igual que antes.
+    const url = endpoint ?? (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : undefined);
+
+    if (url && accessKeyId && secretAccessKey) {
       this.client = new S3Client({
-        region: 'auto',
-        endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+        region: this.config.region,
+        endpoint: url,
+        forcePathStyle: this.config.forcePathStyle,
         credentials: { accessKeyId, secretAccessKey },
       });
     }

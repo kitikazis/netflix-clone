@@ -32,6 +32,9 @@ FROM deps AS build
 ARG NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
+# Activa la salida `standalone` (ver next.config.mjs): fuera de Docker se deja
+# apagada para no interferir con los adaptadores de Netlify o Vercel.
+ENV BUILD_DOCKER=1
 COPY apps/web apps/web
 RUN npm run build --workspace @netflix-clone/web
 

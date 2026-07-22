@@ -31,6 +31,11 @@ export const databaseConfig = registerAs('database', () => ({
   user: process.env.DATABASE_USER as string,
   password: process.env.DATABASE_PASSWORD as string,
   name: process.env.DATABASE_NAME as string,
+  // Los Postgres gestionados (Supabase, Neon…) solo aceptan conexiones TLS y
+  // rechazan la conexión sin más si se intenta en claro. `rejectUnauthorized:
+  // false` acepta su certificado sin tener que empaquetar la CA: el tráfico va
+  // cifrado igual, pero no se verifica la identidad del servidor.
+  ssl: process.env.DATABASE_SSL === 'true',
 }));
 
 export const redisConfig = registerAs('redis', () => ({
@@ -68,6 +73,16 @@ export const mediaConfig = registerAs('media', () => ({
 export const storageConfig = registerAs('storage', () => ({
   driver: (process.env.STORAGE_DRIVER ?? 'local') as 'local' | 'r2',
   r2: {
+    /**
+     * Endpoint S3 explícito. El driver habla S3 estándar, así que sirve
+     * cualquier proveedor compatible (Supabase Storage, Backblaze B2, MinIO…);
+     * sin esto se construye el de R2 a partir de `accountId`.
+     */
+    endpoint: process.env.S3_ENDPOINT,
+    // Casi todos los S3 que no son AWS necesitan el bucket en la ruta y no como
+    // subdominio. R2 acepta las dos formas, así que activarlo no le molesta.
+    forcePathStyle: process.env.S3_FORCE_PATH_STYLE !== 'false',
+    region: process.env.S3_REGION ?? 'auto',
     accountId: process.env.R2_ACCOUNT_ID,
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,

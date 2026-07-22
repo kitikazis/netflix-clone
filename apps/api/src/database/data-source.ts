@@ -28,6 +28,9 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DATABASE_USER ?? 'netflix',
   password: process.env.DATABASE_PASSWORD ?? 'netflix',
   database: process.env.DATABASE_NAME ?? 'netflix_clone',
+  // Mismo criterio que DatabaseModule: sin esto, `migration:run` contra un
+  // Postgres gestionado (Supabase, Neon…) ni siquiera llega a conectar.
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
   entities: [join(raiz, '**', `*.entity.${ext}`)],
   migrations: [join(raiz, 'database', 'migrations', `*.${ext}`)],
   namingStrategy: new SnakeNamingStrategy(),

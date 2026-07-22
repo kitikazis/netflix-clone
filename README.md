@@ -234,6 +234,30 @@ seria, `r2`.
 **`init: true`** monta tini como PID 1 para que el `SIGTERM` llegue a Node y se ejecuten
 los *shutdown hooks* de Nest (cierre del pool de Postgres, Redis y las colas).
 
+### Servicios gestionados (Postgres y almacenamiento de terceros)
+
+El compose lo levanta todo en una máquina, pero cada pieza se puede sustituir por
+un servicio externo sin tocar código:
+
+- **Postgres gestionado** (Supabase, Neon…): `DATABASE_SSL=true`. Solo aceptan
+  conexiones TLS y sin esa variable la conexión no llega ni a abrirse — falla
+  igual el arranque de la API que el `migration:run` del entrypoint.
+- **Almacenamiento S3 que no sea R2** (Supabase Storage, Backblaze B2, MinIO):
+  `S3_ENDPOINT` con la URL del proveedor. El driver `r2` habla S3 estándar; sin
+  esa variable deriva el endpoint de `R2_ACCOUNT_ID` y se comporta como siempre,
+  así que Cloudflare R2 sigue funcionando sin cambiar nada.
+
+> Para vídeo, R2 sigue siendo la mejor opción por su egress gratuito. El endpoint
+> configurable existe para cuando R2 no es viable (por ejemplo, si no quieres
+> registrar una tarjeta), no porque haya dejado de ser lo recomendable.
+
+### Desplegar el front fuera de Docker
+
+`output: 'standalone'` solo se activa con `BUILD_DOCKER=1`, que pone el Dockerfile.
+Netlify y Vercel construyen Next con su propio adaptador y esa salida les estorba,
+así que en esas plataformas no hay que hacer nada: basta con definir `API_URL` y
+`NEXT_PUBLIC_API_URL` en su panel de variables.
+
 ### Imágenes
 
 | Imagen | Tamaño | Notas |
