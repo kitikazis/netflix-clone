@@ -20,6 +20,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <BarraSuperior />
         <main className="contenido">{children}</main>
+
+        {/* Atribución a TMDB: su licencia de uso la exige para las carátulas y
+            sinopsis del catálogo. La coletilla de "no avalado" también es suya. */}
+        <footer className="pie">
+          <span>Proyecto de práctica · sin ánimo comercial</span>
+          <span className="pie-tmdb">
+            Carátulas y sinopsis de{' '}
+            <a
+              href="https://www.themoviedb.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              TMDB
+            </a>
+            . Este producto usa la API de TMDB, pero no está avalado ni
+            certificado por TMDB.
+          </span>
+        </footer>
       </body>
     </html>
   );

@@ -540,6 +540,17 @@ body {
 .vacio { color: var(--ink-dim); text-align: center; padding: 2rem 1rem; letter-spacing: 0.06em; line-height: 1.7; }
 .vacio code, .sin-senal code { color: var(--amber); }
 
+/* ---------- Pie ---------- */
+.pie {
+  display: flex; flex-direction: column; gap: 0.35rem; align-items: center; text-align: center;
+  padding: 2rem clamp(1rem, 3vw, 2.2rem) 2.6rem;
+  border-top: 1px solid var(--linea); margin-top: clamp(2rem, 6vh, 4rem);
+  color: var(--ink-dim); font-size: 0.62rem; letter-spacing: 0.12em; line-height: 1.7;
+}
+.pie-tmdb { max-width: 46rem; opacity: 0.8; }
+.pie a { color: var(--cyan); text-decoration: none; }
+.pie a:hover { text-decoration: underline; }
+
 /* ---------- Buscador de la barra ---------- */
 .buscador {
   flex: 1 1 auto; max-width: 26rem; min-width: 0;
