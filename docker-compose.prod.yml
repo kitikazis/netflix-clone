@@ -1,0 +1,108 @@
+# Despliegue completo en una sola máquina (VPS, Coolify, Dokploy, Portainer…).
+# Postgres y Redis quedan SIN publicar puertos: solo se llega a ellos por la red
+# interna de compose. Lo único que se expone es la API y el front.
+#
+#   cp .env.produccion.example .env.produccion   # y rellénalo
+#   docker compose -f docker-compose.prod.yml --env-file .env.produccion up -d --build
+#
+# Delante de esto debe ir un proxy con TLS (Caddy, Traefik, nginx) que termine
+# HTTPS y enrute tu dominio a web:3001 y el de la API a api:3000.
+
+name: netflix-clone
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # `appendonly` importa aquí: Redis guarda el estado caliente de "continuar
+    # viendo" y la allowlist de refresh tokens. Sin persistencia, un reinicio
+    # cierra la sesión de todo el mundo.
+    command: ['redis-server', '--appendonly', 'yes', '--requirepass', '${REDIS_PASSWORD}']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    init: true # tini como PID 1: el SIGTERM llega a Node y Nest cierra limpio
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-7d}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      MEDIA_TRANSCODE_CONCURRENCY: ${MEDIA_TRANSCODE_CONCURRENCY:-1}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
+    volumes:
+      # Solo hace falta con STORAGE_DRIVER=local: los vídeos de origen y el HLS
+      # generado viven aquí. Con driver r2 el contenedor es desechable.
+      - media_data:/app/apps/api/storage
+    ports:
+      - '${API_PUERTO:-3000}:3000'
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Se incrusta en el bundle del navegador durante el build: tiene que ser
+        # la URL PÚBLICA de la API, la que ve el usuario, no el nombre interno.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    init: true
+    depends_on:
+      api: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # El SSR llama a la API por la red interna: ni sale a internet ni depende
+      # de que el DNS público resuelva desde dentro del contenedor.
+      API_URL: http://api:3000/api/v1
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    ports:
+      - '${WEB_PUERTO:-3001}:3001'
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:

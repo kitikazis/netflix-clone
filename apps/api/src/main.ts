@@ -15,9 +15,13 @@ async function bootstrap(): Promise<void> {
 
   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
 
-  // Security headers + CORS (tighten origins per environment later).
-  app.use(helmet());
-  app.enableCors({ origin: true, credentials: true });
+  // Security headers + CORS. Los orígenes salen de CORS_ORIGINS; en producción
+  // son obligatorios (ver env.validation), porque la API responde con
+  // credenciales y un comodín permitiría peticiones autenticadas desde
+  // cualquier web. `crossOriginResourcePolicy` se relaja para que el HLS
+  // servido por esta misma API se pueda reproducir desde el dominio del front.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+  app.enableCors({ origin: config.corsOrigins, credentials: true });
 
   // /api/v1/... — URI versioning keeps breaking changes additive.
   app.setGlobalPrefix('api');

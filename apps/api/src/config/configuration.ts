@@ -8,11 +8,22 @@ import { registerAs } from '@nestjs/config';
  * Env is already validated & coerced by `validate()`, so parsing here is safe.
  */
 
-export const appConfig = registerAs('app', () => ({
-  env: process.env.NODE_ENV ?? 'development',
-  port: parseInt(process.env.PORT ?? '3000', 10),
-  isProduction: process.env.NODE_ENV === 'production',
-}));
+export const appConfig = registerAs('app', () => {
+  const origenes = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+  return {
+    env: process.env.NODE_ENV ?? 'development',
+    port: parseInt(process.env.PORT ?? '3000', 10),
+    isProduction: process.env.NODE_ENV === 'production',
+    // Lista explícita, o `true` (refleja el origen que llame) cuando no se
+    // configura. La validación de env exige la lista en producción, así que ese
+    // `true` solo puede darse en desarrollo.
+    corsOrigins: origenes.length > 0 ? origenes : true,
+  };
+});
 
 export const databaseConfig = registerAs('database', () => ({
   host: process.env.DATABASE_HOST as string,

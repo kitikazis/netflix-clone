@@ -8,6 +8,7 @@ import {
   Max,
   Min,
   MinLength,
+  ValidateIf,
   validateSync,
 } from 'class-validator';
 
@@ -31,6 +32,17 @@ export class EnvironmentVariables {
   @Min(0)
   @Max(65535)
   PORT: number = 3000;
+
+  /**
+   * Orígenes permitidos por CORS, separados por comas.
+   * Obligatoria en producción: la API responde con credenciales, así que un
+   * comodín ahí deja que cualquier web haga peticiones autenticadas en nombre
+   * del usuario. En desarrollo se permite cualquier origen por comodidad.
+   */
+  @ValidateIf((o: EnvironmentVariables) => o.NODE_ENV === NodeEnv.Production)
+  @IsString()
+  @MinLength(1)
+  CORS_ORIGINS?: string;
 
   // --- PostgreSQL ---
   @IsString()

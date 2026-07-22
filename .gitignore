@@ -11,7 +11,9 @@ build/
 # Environment
 .env
 .env.*
+# Las plantillas sí van al repo; lo que se ignora es el archivo ya relleno.
 !.env.example
+!*.example
 
 # Logs
 logs/

@@ -190,3 +190,53 @@ registro/login (/entrar) → elegir perfil → catálogo (/) → ficha → ▶ v
    → el reproductor reanuda desde tu posición y guarda el progreso
    → "continuar viendo" aparece en la home
 ```
+
+## Despliegue
+
+Las dos apps van en imágenes propias, con Postgres y Redis al lado. El contexto de
+build es siempre la **raíz del repo** (npm workspaces necesita el `package-lock.json`
+de arriba), de ahí el `-f apps/*/Dockerfile .`.
+
+```bash
+cp .env.produccion.example .env.produccion    # rellénalo (secretos incluidos)
+docker compose -f docker-compose.prod.yml --env-file .env.produccion up -d --build
+```
+
+Postgres y Redis **no publican puertos**: solo se llega a ellos por la red interna.
+Delante hace falta un proxy con TLS (Caddy, Traefik, nginx) que enrute tu dominio a
+`web:3001` y el de la API a `api:3000`.
+
+> Los subcomandos posteriores (`ps`, `logs`, `down`) necesitan el mismo `--env-file`,
+> o compose avisará de variables sin definir.
+
+### Lo que hay que saber antes de desplegar
+
+**`NEXT_PUBLIC_API_URL` se incrusta al compilar, no al arrancar.** Es la única
+variable con esa trampa: Next la mete en el bundle del navegador durante el build, así
+que va como `--build-arg` y cambiarla obliga a reconstruir la imagen del front
+(`up -d --build`). Si solo la pasas en runtime, el navegador seguirá llamando a la URL
+que hubiera al compilar. `API_URL` (el SSR) sí es de runtime, y apunta a la red interna
+(`http://api:3000/api/v1`) para no salir a internet ni depender del DNS público.
+
+**`CORS_ORIGINS` es obligatoria en producción** y la API **no arranca** sin ella: como
+responde con credenciales, un comodín dejaría que cualquier web hiciera peticiones
+autenticadas en nombre del usuario. Es el dominio del *front*, no el de la API.
+
+**Las migraciones se aplican solas al arrancar** (`docker-entrypoint.sh`), y son
+idempotentes. Con **más de una réplica** pon `EJECUTAR_MIGRACIONES=false` y lanza
+`npm run migration:run:prod` como paso previo del despliegue, para que varias
+instancias no compitan por aplicar el mismo cambio de esquema.
+
+**Almacenamiento.** Con `STORAGE_DRIVER=local` el HLS vive en el volumen `media_data`
+y el servicio deja de ser desechable (ni escala a varias réplicas). Para cualquier cosa
+seria, `r2`.
+
+**`init: true`** monta tini como PID 1 para que el `SIGTERM` llegue a Node y se ejecuten
+los *shutdown hooks* de Nest (cierre del pool de Postgres, Redis y las colas).
+
+### Imágenes
+
+| Imagen | Tamaño | Notas |
+| ------ | ------ | ----- |
+| `api`  | ~806 MB | Debian y no Alpine: los binarios de `ffmpeg-static`/`ffprobe-static` están enlazados contra glibc y en musl no arrancan. Se podan los binarios de macOS y Windows que trae `ffprobe-static` (~237 MB de peso muerto en Linux). |
+| `web`  | ~434 MB | Salida `standalone` de Next, con `outputFileTracingRoot` apuntando a la raíz del monorepo para que el trazado incluya el `node_modules` izado. |
