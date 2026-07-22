@@ -45,6 +45,40 @@ function suscribir(cb: () => void): () => void {
   return () => oyentes.delete(cb);
 }
 
+/**
+ * Motivo por el que se cerró la sesión sin que el usuario lo pidiera.
+ *
+ * Hasta ahora, cuando el refresh caducaba se limpiaba la sesión en silencio: la
+ * acción en curso fallaba sin explicación y la barra pasaba a "Entrar" sin
+ * decir por qué. Esto permite avisar.
+ */
+let motivoCierre: 'caducada' | null = null;
+const oyentesCierre = new Set<() => void>();
+
+function anunciarCierre(): void {
+  motivoCierre = 'caducada';
+  oyentesCierre.forEach((cb) => cb());
+}
+
+/** True mientras haya un cierre involuntario sin reconocer. */
+export function useSesionCaducada(): { caducada: boolean; descartar: () => void } {
+  const caducada = useSyncExternalStore(
+    (cb) => {
+      oyentesCierre.add(cb);
+      return () => oyentesCierre.delete(cb);
+    },
+    () => motivoCierre !== null,
+    () => false,
+  );
+  return {
+    caducada,
+    descartar: () => {
+      motivoCierre = null;
+      oyentesCierre.forEach((cb) => cb());
+    },
+  };
+}
+
 // Entrar o salir en otra pestaña invalida la caché de esta.
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
@@ -199,7 +233,10 @@ async function ejecutarRefresco(): Promise<Sesion | null> {
   } catch (err) {
     // Un 401 aquí significa refresh revocado o caducado: la sesión murió de
     // verdad. Un fallo de red, en cambio, no debe echar al usuario.
-    if (err instanceof ErrorApi && err.estado === 401) escribir(null);
+    if (err instanceof ErrorApi && err.estado === 401) {
+      escribir(null);
+      anunciarCierre();
+    }
     return null;
   }
 }
@@ -254,6 +291,7 @@ interface RespuestaLogin {
 }
 
 function guardarSesion(data: RespuestaLogin): Perfil[] {
+  motivoCierre = null;
   escribir({
     correo: data.usuario.correo,
     cuentaToken: data.tokens.accessToken,

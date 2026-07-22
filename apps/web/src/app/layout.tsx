@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { BarraSuperior } from '@/components/BarraSuperior';
+import { AvisoSesion } from '@/components/AvisoSesion';
 import { display, texto } from './fuentes';
 import './globals.css';
 
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={`${display.variable} ${texto.variable}`}>
       <body>
         <BarraSuperior />
+        <AvisoSesion />
         <main className="contenido">{children}</main>
 
         {/* Atribución a TMDB: su licencia de uso la exige para las carátulas y
