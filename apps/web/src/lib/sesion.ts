@@ -59,6 +59,38 @@ export function useSesion(): Sesion | null {
   return useSyncExternalStore(suscribir, leer, () => null);
 }
 
+interface PayloadToken {
+  sub: string;
+  correo: string;
+  rol: 'USUARIO' | 'ADMIN';
+  perfilId?: string;
+}
+
+/**
+ * Lee el contenido del access token SIN verificar la firma.
+ *
+ * Sirve solo para decidir qué enseñar en la interfaz. La autorización de verdad
+ * la hace la API en cada petición (JwtAccessGuard + RolesGuard): manipular esto
+ * en el navegador cambia lo que se ve, no lo que se puede hacer.
+ */
+function leerPayload(token: string | null | undefined): PayloadToken | null {
+  if (!token) return null;
+  try {
+    const cuerpo = token.split('.')[1];
+    if (!cuerpo) return null;
+    const json = atob(cuerpo.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(json) as PayloadToken;
+  } catch {
+    return null;
+  }
+}
+
+/** True si la cuenta tiene rol ADMIN. Solo para mostrar u ocultar la interfaz. */
+export function useEsAdmin(): boolean {
+  const sesion = useSesion();
+  return leerPayload(sesion?.cuentaToken)?.rol === 'ADMIN';
+}
+
 // ---------------------------------------------------------------------------
 // Capa HTTP
 // ---------------------------------------------------------------------------
@@ -192,6 +224,18 @@ async function api<T>(path: string, opciones: Opciones = {}): Promise<T> {
     if (!nuevo) throw err;
     return crudo<T>(path, { ...opciones, token: nuevo });
   }
+}
+
+/**
+ * Petición autenticada con el token de CUENTA, reutilizable desde otros
+ * módulos (p. ej. la administración del catálogo). Hereda el refresco
+ * automático y el reintento ante 401.
+ */
+export function peticionCuenta<T>(
+  path: string,
+  opciones: Omit<Opciones, 'ambito'> = {},
+): Promise<T> {
+  return api<T>(path, { ...opciones, ambito: 'cuenta' });
 }
 
 // ---------------------------------------------------------------------------

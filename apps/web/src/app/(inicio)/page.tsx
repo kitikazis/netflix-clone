@@ -58,10 +58,8 @@ export default async function Home() {
   return (
     <div className="catalogo">
       {/* Héroe: título destacado o cabecera del videoclub */}
-      <section
-        className="hero"
-        style={fondoImagen(destacado?.backdropUrl)}
-      >
+      <section className="hero">
+        <div className="hero-lamina" style={fondoImagen(destacado?.posterUrl)} aria-hidden />
         <div className="hero-cuerpo">
           <div className="canal">Destacado</div>
           {destacado ? (
@@ -119,6 +117,7 @@ export default async function Home() {
                 anio={c.anioLanzamiento}
                 estado={c.estadoProcesamiento}
                 prioridad={i < 6}
+                indice={i + 1}
               />
             ))}
           </div>
