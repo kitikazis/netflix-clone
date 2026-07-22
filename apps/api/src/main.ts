@@ -15,6 +15,17 @@ async function bootstrap(): Promise<void> {
 
   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
 
+  /**
+   * Detrás de un proxy (Render, Netlify, cualquier balanceador) todas las
+   * peticiones llegan con la IP del proxy. Sin esto, el límite por IP contaría
+   * a todos los visitantes como uno solo: bastarían cinco intentos de login de
+   * cualquiera para bloquear el acceso a todo el mundo.
+   *
+   * Con `trust proxy` en 1 se toma la última IP de X-Forwarded-For, que es la
+   * que añade el proxy inmediato y la única en la que se puede confiar.
+   */
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   // Security headers + CORS. Los orígenes salen de CORS_ORIGINS; en producción
   // son obligatorios (ver env.validation), porque la API responde con
   // credenciales y un comodín permitiría peticiones autenticadas desde

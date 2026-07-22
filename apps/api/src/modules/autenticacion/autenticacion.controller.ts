@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAccessGuard } from '@/common/guards/jwt-access.guard';
 import { UsuarioActual } from '@/common/decorators/usuario-actual.decorator';
 import { AccessTokenPayload } from '@/common/interfaces/token-payload.interface';
@@ -22,6 +23,7 @@ export class AutenticacionController {
   constructor(private readonly auth: AutenticacionService) {}
 
   @ApiOperation({ summary: 'Crea una cuenta con un perfil por defecto' })
+  @Throttle({ general: { limit: 5, ttl: 60_000 } })
   @Post('registro')
   registro(@Body() dto: RegistroDto) {
     return this.auth.registro(dto);
@@ -29,6 +31,7 @@ export class AutenticacionController {
 
   @ApiOperation({ summary: 'Inicia sesión (cuenta) y devuelve tokens + perfiles' })
   @HttpCode(200)
+  @Throttle({ general: { limit: 5, ttl: 60_000 } })
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto);
@@ -36,6 +39,7 @@ export class AutenticacionController {
 
   @ApiOperation({ summary: 'Rota el par de tokens' })
   @HttpCode(200)
+  @Throttle({ general: { limit: 20, ttl: 60_000 } })
   @Post('refrescar')
   refrescar(@Body() dto: RefrescarTokenDto) {
     return this.auth.refrescar(dto.refreshToken);

@@ -1,7 +1,9 @@
 import { resolve } from 'node:path';
 import { ServerResponse } from 'node:http';
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigType } from '@nestjs/config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { configurations, mediaConfig, validate } from '@/config';
 import { DatabaseModule } from '@/database/database.module';
@@ -23,6 +25,17 @@ import { ProgresoVisualizacionModule } from '@/modules/progreso-visualizacion/pr
       validate,
       envFilePath: ['.env.local', '.env'],
     }),
+
+    /**
+     * Límite de peticiones por IP. El global es holgado —navegar el catálogo
+     * dispara varias peticiones seguidas— y los endpoints sensibles llevan el
+     * suyo propio con @Throttle.
+     *
+     * El almacén es en memoria: basta con una instancia, que es lo que hay.
+     * Con varias réplicas cada una contaría por su cuenta y habría que pasarlo
+     * a Redis, que ya está disponible.
+     */
+    ThrottlerModule.forRoot([{ name: 'general', ttl: 60_000, limit: 150 }]),
 
     // Infrastructure
     DatabaseModule,
@@ -58,5 +71,6 @@ import { ProgresoVisualizacionModule } from '@/modules/progreso-visualizacion/pr
     ProcesamientoVideoModule,
     ProgresoVisualizacionModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
