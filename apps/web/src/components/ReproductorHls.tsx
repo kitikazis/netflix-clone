@@ -88,9 +88,13 @@ export function ReproductorHls({
     } else if (Hls.isSupported()) {
       hls = new Hls({ enableWorker: true });
       hlsRef.current = hls;
-      hls.loadSource(src);
-      hls.attachMedia(video);
 
+      // Los escuchadores van ANTES de loadSource. Si se registran después, con
+      // un manifiesto que llega rápido —servido por CDN o ya en caché—
+      // MANIFEST_PARSED se dispara sin que nadie lo oiga y la lista de
+      // calidades se queda vacía: el selector aparece desactivado y no hay
+      // forma de elegir resolución. Es una carrera que se gana o se pierde
+      // según la latencia, así que en local parece funcionar y en producción no.
       hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => setNiveles(data.levels));
       hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => {
         setNivelReal(data.level);
@@ -112,6 +116,9 @@ export function ReproductorHls({
           hls?.destroy();
         }
       });
+
+      hls.loadSource(src);
+      hls.attachMedia(video);
     } else {
       setError('Tu navegador no soporta HLS');
     }
