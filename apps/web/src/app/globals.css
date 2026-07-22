@@ -909,3 +909,78 @@ a { color: inherit; }
   .rep-tiempo { font-size: 0.68rem; }
   .rep-volumen { display: none; }
 }
+
+/* ---------- Iluminación cinematográfica ----------
+   Lienzo diminuto ampliado por CSS: el desenfoque sale del propio escalado,
+   sin filtros caros por fotograma. */
+.rep-halo {
+  position: absolute; inset: -12%; z-index: 0;
+  width: 124%; height: 124%;
+  filter: blur(58px) saturate(190%);
+  opacity: 0.55; pointer-events: none;
+  transition: opacity 400ms ease;
+}
+.player-video { position: relative; z-index: 1; }
+
+/* ---------- Menú de ajustes ---------- */
+.rep-ajustes {
+  position: absolute; bottom: calc(100% + 0.6rem); right: 0; z-index: 6;
+  min-width: 16rem; max-width: 20rem;
+  background: rgba(18, 15, 14, 0.96); backdrop-filter: blur(16px);
+  border: 1px solid rgba(239, 232, 220, 0.16); border-radius: 8px;
+  box-shadow: 0 18px 44px -12px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+.rep-ajustes-lista { max-height: 58vh; overflow-y: auto; padding: 0.3rem; }
+
+.rep-ajustes-volver {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%;
+  background: none; border: none; border-bottom: 1px solid rgba(239, 232, 220, 0.14);
+  color: var(--sala-tinta); font-family: var(--texto); font-size: var(--t-sm);
+  padding: 0.7rem 0.9rem; cursor: pointer; text-align: left;
+}
+.rep-ajustes-volver:hover { background: rgba(239, 232, 220, 0.08); }
+
+.rep-ajustes-fila, .rep-ajustes-opcion {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%;
+  background: none; border: none; cursor: pointer; text-align: left;
+  color: var(--sala-tinta); font-family: var(--texto); font-size: var(--t-sm);
+  padding: 0.6rem 0.7rem; border-radius: 5px;
+}
+.rep-ajustes-fila:hover:not(:disabled), .rep-ajustes-opcion:hover {
+  background: rgba(239, 232, 220, 0.1);
+}
+.rep-ajustes-fila:disabled { opacity: 0.4; cursor: not-allowed; }
+.rep-ajustes-eti { flex: 1; }
+.rep-ajustes-val {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  color: rgba(239, 232, 220, 0.6); font-size: var(--t-xs); white-space: nowrap;
+}
+.rep-ajustes-nota {
+  margin: 0; padding: 0.6rem 0.7rem;
+  color: rgba(239, 232, 220, 0.5); font-size: var(--t-xs);
+}
+
+/* Marca de selección delante, sin desplazar el texto de las demás. */
+.rep-ajustes-opcion::before { content: '·'; width: 0.9rem; opacity: 0; flex-shrink: 0; }
+.rep-ajustes-opcion.activa::before { content: '✓'; opacity: 1; }
+.rep-ajustes-opcion.activa { color: #fff; }
+
+.rep-insignia {
+  margin-left: auto; font-size: 0.62rem; letter-spacing: var(--rotulo-espaciado);
+  text-transform: uppercase; color: var(--tinta-roja);
+  border: 1px solid currentColor; border-radius: 999px; padding: 0.05rem 0.4rem;
+}
+
+.rep-interruptor {
+  position: relative; flex-shrink: 0;
+  width: 2.1rem; height: 1.1rem; border-radius: 999px;
+  background: rgba(239, 232, 220, 0.25); transition: background var(--transicion);
+}
+.rep-interruptor::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: calc(1.1rem - 4px); height: calc(1.1rem - 4px); border-radius: 50%;
+  background: var(--sala-tinta); transition: transform var(--transicion);
+}
+.rep-interruptor.on { background: var(--tinta-roja); }
+.rep-interruptor.on::after { transform: translateX(1rem); background: #fff; }

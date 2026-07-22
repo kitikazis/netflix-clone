@@ -2,16 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Level } from 'hls.js';
-
-export const VELOCIDADES = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
+import { MenuAjustes, type Subtitulo } from './MenuAjustes';
 
 interface Props {
   video: HTMLVideoElement | null;
   niveles: Level[];
   nivel: number;
+  nivelReal: number;
   alCambiarNivel: (indice: number) => void;
   contenedor: HTMLElement | null;
   siguienteHref?: string;
+  ambiental: boolean;
+  alCambiarAmbiental: (v: boolean) => void;
 }
 
 function reloj(segundos: number): string {
@@ -40,9 +42,12 @@ export function Controles({
   video,
   niveles,
   nivel,
+  nivelReal,
   alCambiarNivel,
   contenedor,
   siguienteHref,
+  ambiental,
+  alCambiarAmbiental,
 }: Props) {
   const [reproduciendo, setReproduciendo] = useState(false);
   const [actual, setActual] = useState(0);
@@ -52,7 +57,10 @@ export function Controles({
   const [silenciado, setSilenciado] = useState(false);
   const [velocidad, setVelocidad] = useState(1);
   const [pantallaCompleta, setPantallaCompleta] = useState(false);
-  const [menu, setMenu] = useState<'ninguno' | 'calidad' | 'velocidad'>('ninguno');
+  const [ajustes, setAjustes] = useState(false);
+  const [subtitulos, setSubtitulos] = useState<Subtitulo[]>([]);
+  const [subtituloActivo, setSubtituloActivo] = useState(-1);
+  const [temporizador, setTemporizador] = useState<number | null>(null);
   const [visible, setVisible] = useState(true);
   const [cargando, setCargando] = useState(false);
   const ocultar = useRef<number | null>(null);
@@ -100,6 +108,35 @@ export function Controles({
     };
   }, [video]);
 
+  // Pistas de subtítulos: con HLS las anuncia el manifiesto, así que pueden
+  // aparecer después de cargar el vídeo.
+  useEffect(() => {
+    if (!video) return;
+    const leer = () => {
+      const pistas = Array.from(video.textTracks).filter(
+        (p) => p.kind === 'subtitles' || p.kind === 'captions',
+      );
+      setSubtitulos(pistas.map((p, i) => ({ id: i, etiqueta: p.label || p.language || `Pista ${i + 1}` })));
+    };
+    leer();
+    video.textTracks.addEventListener('addtrack', leer);
+    video.textTracks.addEventListener('removetrack', leer);
+    return () => {
+      video.textTracks.removeEventListener('addtrack', leer);
+      video.textTracks.removeEventListener('removetrack', leer);
+    };
+  }, [video]);
+
+  /** Temporizador: `0` significa "hasta que acabe el vídeo". */
+  useEffect(() => {
+    if (!video || temporizador === null || temporizador === 0) return;
+    const t = window.setTimeout(() => {
+      video.pause();
+      setTemporizador(null);
+    }, temporizador * 60_000);
+    return () => window.clearTimeout(t);
+  }, [video, temporizador]);
+
   useEffect(() => {
     const cambio = () => setPantallaCompleta(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', cambio);
@@ -112,7 +149,7 @@ export function Controles({
     const despertar = () => {
       setVisible(true);
       if (ocultar.current) window.clearTimeout(ocultar.current);
-      if (reproduciendo && menu === 'ninguno') {
+      if (reproduciendo && !ajustes) {
         ocultar.current = window.setTimeout(() => setVisible(false), 2800);
       }
     };
@@ -124,7 +161,7 @@ export function Controles({
       contenedor.removeEventListener('touchstart', despertar);
       if (ocultar.current) window.clearTimeout(ocultar.current);
     };
-  }, [contenedor, reproduciendo, menu]);
+  }, [contenedor, reproduciendo, ajustes]);
 
   if (!video) return null;
 
@@ -142,7 +179,13 @@ export function Controles({
   const cambiarVelocidad = (v: number) => {
     video.playbackRate = v;
     setVelocidad(v);
-    setMenu('ninguno');
+  };
+
+  const cambiarSubtitulo = (id: number) => {
+    Array.from(video.textTracks).forEach((p, i) => {
+      p.mode = i === id ? 'showing' : 'disabled';
+    });
+    setSubtituloActivo(id);
   };
 
   const pantalla = () => {
@@ -266,85 +309,38 @@ export function Controles({
             <div className="rep-menu-marco">
               <button
                 type="button"
-                className={`rep-btn rep-texto ${menu === 'velocidad' ? 'activo' : ''}`}
-                onClick={() => setMenu(menu === 'velocidad' ? 'ninguno' : 'velocidad')}
+                className={`rep-btn ${ajustes ? 'activo' : ''}`}
+                onClick={() => setAjustes(!ajustes)}
                 aria-haspopup="menu"
-                aria-expanded={menu === 'velocidad'}
+                aria-expanded={ajustes}
+                aria-label="Ajustes"
               >
-                {velocidad}×
+                <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden>
+                  <path
+                    fill="currentColor"
+                    d="M19.4 13a7.8 7.8 0 000-2l2.1-1.6a.5.5 0 00.1-.6l-2-3.5a.5.5 0 00-.6-.2l-2.5 1a7.3 7.3 0 00-1.7-1l-.4-2.6a.5.5 0 00-.5-.4h-4a.5.5 0 00-.5.4l-.4 2.6a7.3 7.3 0 00-1.7 1l-2.5-1a.5.5 0 00-.6.2l-2 3.5a.5.5 0 00.1.6L4.6 11a7.8 7.8 0 000 2l-2.1 1.6a.5.5 0 00-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.2.4.5.4h4c.3 0 .5-.2.5-.4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 00-.1-.6zM12 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"
+                  />
+                </svg>
               </button>
-              {menu === 'velocidad' && (
-                <ul className="rep-menu" role="menu">
-                  {VELOCIDADES.map((v) => (
-                    <li key={v} role="none">
-                      <button
-                        type="button"
-                        role="menuitemradio"
-                        aria-checked={velocidad === v}
-                        className={velocidad === v ? 'activo' : ''}
-                        onClick={() => cambiarVelocidad(v)}
-                      >
-                        {v === 1 ? 'Normal' : `${v}×`}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+              {ajustes && (
+                <MenuAjustes
+                  niveles={niveles}
+                  nivel={nivel}
+                  nivelReal={nivelReal}
+                  alCambiarNivel={alCambiarNivel}
+                  velocidad={velocidad}
+                  alCambiarVelocidad={cambiarVelocidad}
+                  subtitulos={subtitulos}
+                  subtituloActivo={subtituloActivo}
+                  alCambiarSubtitulo={cambiarSubtitulo}
+                  ambiental={ambiental}
+                  alCambiarAmbiental={alCambiarAmbiental}
+                  temporizador={temporizador}
+                  alCambiarTemporizador={setTemporizador}
+                  alCerrar={() => setAjustes(false)}
+                />
               )}
             </div>
-
-            {niveles.length > 0 && (
-              <div className="rep-menu-marco">
-                <button
-                  type="button"
-                  className={`rep-btn rep-texto ${menu === 'calidad' ? 'activo' : ''}`}
-                  onClick={() => setMenu(menu === 'calidad' ? 'ninguno' : 'calidad')}
-                  aria-haspopup="menu"
-                  aria-expanded={menu === 'calidad'}
-                >
-                  {nivel === -1
-                    ? 'Auto'
-                    : etiquetaNivel(niveles[nivel] ?? niveles[0], nivel === indiceMaximo)}
-                </button>
-                {menu === 'calidad' && (
-                  <ul className="rep-menu" role="menu">
-                    <li role="none">
-                      <button
-                        type="button"
-                        role="menuitemradio"
-                        aria-checked={nivel === -1}
-                        className={nivel === -1 ? 'activo' : ''}
-                        onClick={() => {
-                          alCambiarNivel(-1);
-                          setMenu('ninguno');
-                        }}
-                      >
-                        Automática
-                      </button>
-                    </li>
-                    {/* De mayor a menor: quien abre esto suele buscar la máxima. */}
-                    {niveles
-                      .map((n, i) => ({ n, i }))
-                      .reverse()
-                      .map(({ n, i }) => (
-                        <li key={i} role="none">
-                          <button
-                            type="button"
-                            role="menuitemradio"
-                            aria-checked={nivel === i}
-                            className={nivel === i ? 'activo' : ''}
-                            onClick={() => {
-                              alCambiarNivel(i);
-                              setMenu('ninguno');
-                            }}
-                          >
-                            {etiquetaNivel(n, i === indiceMaximo)}
-                          </button>
-                        </li>
-                      ))}
-                  </ul>
-                )}
-              </div>
-            )}
 
             {siguienteHref && (
               <a className="rep-btn rep-texto" href={siguienteHref} aria-label="Siguiente episodio">

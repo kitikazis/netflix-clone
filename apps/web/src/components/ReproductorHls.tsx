@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Hls, { type Level } from 'hls.js';
 import { guardarProgreso, obtenerPosicion, useSesion } from '@/lib/sesion';
 import { Controles } from './reproductor/Controles';
+import { HaloAmbiental } from './reproductor/HaloAmbiental';
 
 export interface EnlaceSiguiente {
   href: string;
@@ -63,6 +64,10 @@ export function ReproductorHls({
   const [error, setError] = useState<string | null>(null);
   const [niveles, setNiveles] = useState<Level[]>([]);
   const [nivel, setNivel] = useState(-1); // -1 = automático
+  // Variante que suena de hecho. En modo automático `nivel` vale -1, pero hay
+  // que poder enseñar cuál está eligiendo hls.js: "Automática (696p)".
+  const [nivelReal, setNivelReal] = useState(-1);
+  const [ambiental, setAmbiental] = useState(true);
   const [reanudadoEn, setReanudadoEn] = useState<number | null>(null);
   const [cuentaAtras, setCuentaAtras] = useState<number | null>(null);
 
@@ -88,6 +93,7 @@ export function ReproductorHls({
 
       hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => setNiveles(data.levels));
       hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => {
+        setNivelReal(data.level);
         // Solo refleja el cambio en modo automático; en manual ya lo fijó el usuario.
         if (hls && hls.autoLevelEnabled) setNivel(-1);
         else setNivel(data.level);
@@ -307,6 +313,8 @@ export function ReproductorHls({
         setContenedorEl(el);
       }}
     >
+      {ambiental && <HaloAmbiental video={videoEl} />}
+
       <video
         ref={(el) => {
           videoRef.current = el;
@@ -321,9 +329,12 @@ export function ReproductorHls({
         video={videoEl}
         niveles={niveles}
         nivel={nivel}
+        nivelReal={nivelReal}
         alCambiarNivel={cambiarNivel}
         contenedor={contenedorEl}
         siguienteHref={siguiente?.href}
+        ambiental={ambiental}
+        alCambiarAmbiental={setAmbiental}
       />
 
       {error && <div className="player-error">{error}</div>}
