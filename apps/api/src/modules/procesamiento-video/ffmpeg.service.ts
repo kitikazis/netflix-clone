@@ -16,9 +16,21 @@ interface Rendicion {
 // Escalera multi-bitrate. Nunca se hace upscaling por encima del alto de origen.
 const ESCALERA: Rendicion[] = [
   { nombre: '360p', altura: 360, bitrateVideoKbps: 800, bitrateAudioKbps: 96 },
+  { nombre: '480p', altura: 480, bitrateVideoKbps: 1400, bitrateAudioKbps: 128 },
   { nombre: '720p', altura: 720, bitrateVideoKbps: 2800, bitrateAudioKbps: 128 },
   { nombre: '1080p', altura: 1080, bitrateVideoKbps: 5000, bitrateAudioKbps: 192 },
 ];
+
+/**
+ * Margen para añadir un peldaño a la altura nativa del original.
+ *
+ * Los vídeos no siempre miden 720 ni 1080: un recorte vertical o un vídeo de
+ * redes puede medir 696, y entonces el peldaño más alto que aplica es 480p,
+ * desperdiciando resolución que el original sí tiene. Cuando la diferencia
+ * supera este margen se genera además una variante a la altura de origen, que
+ * es la máxima calidad real disponible.
+ */
+const MARGEN_ALTURA_NATIVA = 80;
 
 const NOMBRE_MASTER = 'master.m3u8';
 
@@ -92,12 +104,35 @@ export class FfmpegService {
   private seleccionarRendiciones(altoOrigen: number): Rendicion[] {
     if (altoOrigen <= 0) return [ESCALERA[0]];
     const aplicables = ESCALERA.filter((r) => r.altura <= altoOrigen);
+
     // Si el origen es más pequeño que el peldaño mínimo, transcodifica a su alto.
     if (aplicables.length === 0) {
-      const alto = altoOrigen % 2 === 0 ? altoOrigen : altoOrigen - 1;
+      const alto = this.parAbajo(altoOrigen);
       return [{ ...ESCALERA[0], nombre: `${alto}p`, altura: alto }];
     }
+
+    // Peldaño extra a la resolución nativa cuando el original queda muy por
+    // encima del último aplicable: es la máxima calidad que se puede ofrecer.
+    const masAlto = aplicables[aplicables.length - 1];
+    if (altoOrigen - masAlto.altura >= MARGEN_ALTURA_NATIVA) {
+      const alto = this.parAbajo(altoOrigen);
+      // El bitrate escala con el área, no con el alto: al subir de 480 a 696 se
+      // multiplican los píxeles por (696/480)², no por 696/480.
+      const factor = (alto / masAlto.altura) ** 2;
+      aplicables.push({
+        nombre: `${alto}p`,
+        altura: alto,
+        bitrateVideoKbps: Math.round(masAlto.bitrateVideoKbps * factor),
+        bitrateAudioKbps: Math.max(masAlto.bitrateAudioKbps, 128),
+      });
+    }
+
     return aplicables;
+  }
+
+  /** Las alturas impares rompen el submuestreo de color de h264. */
+  private parAbajo(n: number): number {
+    return n % 2 === 0 ? n : n - 1;
   }
 
   private transcodificarRendicion(

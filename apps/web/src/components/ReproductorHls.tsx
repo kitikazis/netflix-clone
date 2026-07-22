@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Hls, { type Level } from 'hls.js';
 import { guardarProgreso, obtenerPosicion, useSesion } from '@/lib/sesion';
+import { Controles } from './reproductor/Controles';
 
 export interface EnlaceSiguiente {
   href: string;
@@ -52,6 +53,10 @@ export function ReproductorHls({
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const contenedorRef = useRef<HTMLDivElement>(null);
+  // Además del ref, en estado: los controles necesitan re-renderizar cuando el
+  // elemento existe, y un ref no dispara render.
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  const [contenedorEl, setContenedorEl] = useState<HTMLDivElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const posicionInicial = useRef(0);
 
@@ -295,13 +300,30 @@ export function ReproductorHls({
   }
 
   return (
-    <div className="player-marco" ref={contenedorRef}>
+    <div
+      className="player-marco"
+      ref={(el) => {
+        contenedorRef.current = el;
+        setContenedorEl(el);
+      }}
+    >
       <video
-        ref={videoRef}
+        ref={(el) => {
+          videoRef.current = el;
+          setVideoEl(el);
+        }}
         className="player-video"
-        controls
         playsInline
         poster={poster ?? undefined}
+      />
+
+      <Controles
+        video={videoEl}
+        niveles={niveles}
+        nivel={nivel}
+        alCambiarNivel={cambiarNivel}
+        contenedor={contenedorEl}
+        siguienteHref={siguiente?.href}
       />
 
       {error && <div className="player-error">{error}</div>}
@@ -346,29 +368,6 @@ export function ReproductorHls({
           </div>
         </div>
       )}
-
-      <div className="player-barra">
-        {niveles.length > 1 && (
-          <label className="player-calidad">
-            <span>Calidad</span>
-            <select
-              value={nivel}
-              onChange={(e) => cambiarNivel(Number(e.target.value))}
-            >
-              <option value={-1}>AUTO</option>
-              {niveles.map((n, i) => (
-                <option key={`${n.height}-${i}`} value={i}>
-                  {n.height ? `${n.height}p` : `${Math.round(n.bitrate / 1000)} kbps`}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        <span className="player-atajos" aria-hidden>
-          ESPACIO play · ←/→ ±{SALTO_SEG}s · F pantalla completa · M silencio
-        </span>
-      </div>
 
       {!conPerfil && (
         <div className="player-aviso">
