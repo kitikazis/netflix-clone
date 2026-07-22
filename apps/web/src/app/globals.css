@@ -698,3 +698,50 @@ a { color: inherit; }
 .acceso-alterno .btn { justify-content: center; }
 .acceso-alterno .btn svg { flex-shrink: 0; }
 .acceso-alterno .btn:disabled svg { opacity: 0.55; }
+
+/* ---------- Autocompletado y dictado del buscador ---------- */
+.buscador-marco { position: relative; flex: 1 1 auto; max-width: 22rem; min-width: 0; }
+.buscador-marco .buscador { max-width: none; width: 100%; }
+
+.voz {
+  display: grid; place-items: center; flex-shrink: 0;
+  background: none; border: none; cursor: pointer; padding: 0.1rem;
+  color: var(--tinta-suave); transition: color var(--transicion);
+}
+.voz:hover { color: var(--tinta); }
+.voz.escuchando { color: var(--tinta-roja); animation: latir 1.1s ease-in-out infinite; }
+@keyframes latir {
+  50% { opacity: 0.35; }
+}
+
+.sugerencias {
+  position: absolute; top: calc(100% + 0.4rem); left: 0; right: 0; z-index: 50;
+  list-style: none; margin: 0; padding: 0;
+  background: var(--papel-alto); border: 1px solid var(--filete-fuerte);
+  box-shadow: 0 12px 28px -14px rgba(0, 0, 0, 0.35);
+  max-height: 60vh; overflow-y: auto;
+}
+.sugerencia {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--e2);
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--filete);
+  padding: 0.6rem var(--e2); font-family: inherit; color: var(--tinta);
+}
+.sugerencia:last-child { border-bottom: none; }
+.sugerencia.resaltada { background: var(--papel-hueco); }
+.sugerencia-tit {
+  font-family: var(--display); font-size: var(--t-md); line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sugerencia-anio {
+  font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+  color: var(--tinta-suave); font-variant-numeric: tabular-nums; flex-shrink: 0;
+}
+.sugerencia-todos {
+  font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+  text-transform: uppercase; color: var(--tinta-roja); justify-content: center;
+}
+
+@media (max-width: 760px) {
+  .buscador-marco { order: 3; flex-basis: 100%; max-width: none; }
+}

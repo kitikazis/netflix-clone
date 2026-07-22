@@ -34,6 +34,16 @@ export class ConsultarContenidoDto extends PaginacionDto {
   @MaxLength(80)
   generoSlug?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Busca solo en el título, no en la sinopsis. Para sugerencias: al ' +
+      'escribir "bat" nadie espera resultados cuya sinopsis mencione la palabra.',
+  })
+  @IsOptional()
+  @Transform(aBooleano)
+  @IsBoolean()
+  soloTitulo?: boolean;
+
   @ApiPropertyOptional({ description: 'Solo destacados' })
   @IsOptional()
   @Transform(aBooleano)

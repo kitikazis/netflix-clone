@@ -48,7 +48,15 @@ export class CatalogoService {
     }
 
     if (dto.q) {
-      qb.andWhere('(c.titulo ILIKE :q OR c.sinopsis ILIKE :q)', { q: `%${dto.q}%` });
+      // `%` y `_` son comodines de LIKE: sin escaparlos, buscar "100%" devuelve
+      // el catálogo entero.
+      const termino = `%${dto.q.replace(/[\%_]/g, (c) => `\${c}`)}%`;
+      qb.andWhere(
+        dto.soloTitulo
+          ? 'c.titulo ILIKE :q'
+          : '(c.titulo ILIKE :q OR c.sinopsis ILIKE :q)',
+        { q: termino },
+      );
     }
 
     if (dto.generoSlug) {

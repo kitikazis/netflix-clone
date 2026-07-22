@@ -33,7 +33,7 @@ export function BarraSuperior() {
 
       {/* Suspense: el buscador lee los search params, que obligan a diferir el
           prerenderizado de lo que hay dentro. */}
-      <Suspense fallback={<div className="buscador" />}>
+      <Suspense fallback={<div className="buscador-marco" />}>
         <Buscador />
       </Suspense>
 
