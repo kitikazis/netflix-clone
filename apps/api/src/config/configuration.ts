@@ -35,4 +35,43 @@ export const jwtConfig = registerAs('jwt', () => ({
   refreshTtl: process.env.JWT_REFRESH_TTL ?? '7d',
 }));
 
-export const configurations = [appConfig, databaseConfig, redisConfig, jwtConfig];
+/**
+ * Pipeline de vídeo (Fase 5). Rutas de almacenamiento local para el origen, la
+ * salida HLS servida estáticamente y el directorio de trabajo temporal.
+ * En la Fase 6, `sourceDir`/`outputDir` se sustituyen por Cloudflare R2.
+ */
+export const mediaConfig = registerAs('media', () => ({
+  sourceDir: process.env.MEDIA_SOURCE_DIR ?? 'storage/source',
+  outputDir: process.env.MEDIA_OUTPUT_DIR ?? 'storage/hls',
+  workDir: process.env.MEDIA_WORK_DIR ?? 'storage/tmp',
+  // Ruta bajo la que se sirve `outputDir` (ServeStaticModule) y prefijo de hlsPlaylistUrl.
+  publicPath: process.env.MEDIA_PUBLIC_PATH ?? '/media',
+  transcodeConcurrency: parseInt(process.env.MEDIA_TRANSCODE_CONCURRENCY ?? '1', 10),
+}));
+
+/**
+ * Almacenamiento de objetos (Fase 6). `driver` elige la implementación de
+ * `Almacenamiento`: `local` (disco, por defecto en dev) o `r2` (Cloudflare R2 vía
+ * API S3). Las credenciales R2 solo se exigen cuando `driver = r2`.
+ */
+export const storageConfig = registerAs('storage', () => ({
+  driver: (process.env.STORAGE_DRIVER ?? 'local') as 'local' | 'r2',
+  r2: {
+    accountId: process.env.R2_ACCOUNT_ID,
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    bucket: process.env.R2_BUCKET,
+    // URL pública del bucket (r2.dev o dominio propio) para servir el HLS.
+    publicBaseUrl: (process.env.R2_PUBLIC_BASE_URL ?? '').replace(/\/+$/, ''),
+    presignExpiresSeconds: parseInt(process.env.R2_PRESIGN_EXPIRES ?? '900', 10),
+  },
+}));
+
+export const configurations = [
+  appConfig,
+  databaseConfig,
+  redisConfig,
+  jwtConfig,
+  mediaConfig,
+  storageConfig,
+];

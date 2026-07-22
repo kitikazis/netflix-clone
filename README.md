@@ -76,9 +76,66 @@ npm run migration:show
 1. ✅ Project setup + module structure + config (Postgres + Redis)
 2. ✅ Entidades & migraciones (usuarios, perfiles, contenido, episodios, generos, progreso_visualizacion)
    - ➕ Front mínimo `apps/web` (SSR de estado del sistema) — adelantado
-3. ⬜ Multi-profile auth (JWT + refresh)
-4. ⬜ Catalog API (CRUD + search + pagination)
-5. ⬜ Video pipeline (BullMQ + ffmpeg → HLS)
-6. ⬜ Upload + Cloudflare R2 storage
+3. ✅ Multi-profile auth (JWT + refresh)
+4. ✅ Catalog API (CRUD + search + pagination) — lecturas públicas + gestión admin (rol `ADMIN`)
+5. ✅ Video pipeline (BullMQ + ffmpeg → HLS multi-bitrate; almacenamiento local, R2-ready)
+6. ✅ Upload + Cloudflare R2 storage (subidas prefirmadas; driver `local`/`r2` seleccionable)
 7. ⬜ Next.js frontend (SSR catalog + HLS.js player)
 8. ⬜ Continue watching + history (Redis)
+
+## Catálogo & vídeo (Fases 4–5)
+
+**Autorización.** Las cuentas tienen un rol (`USUARIO` | `ADMIN`), incluido en el
+access token. Las lecturas del catálogo son públicas (solo devuelven contenido
+`publicado`); crear/editar/borrar y encolar transcodificaciones exigen rol `ADMIN`
+(`JwtAccessGuard` + `RolesGuard` + `@Roles`). Para promover una cuenta a admin en
+dev: `UPDATE usuarios SET rol = 'ADMIN' WHERE correo = '...';`.
+
+**Endpoints (bajo `/api/v1`):**
+
+| Método | Ruta | Acceso |
+| ------ | ---- | ------ |
+| GET | `/catalogo/contenido` (búsqueda `q`, `tipo`, `generoSlug`, `destacado`, `orden`, `pagina`, `limite`) | público |
+| GET | `/catalogo/contenido/:slug` | público |
+| GET | `/catalogo/generos` · `/catalogo/generos/:slug` | público |
+| GET | `/catalogo/contenido/:contenidoId/episodios` · `/catalogo/episodios/:id` | público |
+| POST/PATCH/DELETE | `/admin/catalogo/contenido/...` · `/catalogo/generos` · `/catalogo/.../episodios` | admin |
+| POST | `/admin/procesamiento/contenido/:id` · `/admin/procesamiento/episodios/:id` | admin |
+
+**Pipeline de vídeo.** `POST /admin/procesamiento/...` con `{ "claveOrigen": "peliculas/x.mp4" }`
+encola un job BullMQ (202). El worker (ffmpeg estático empaquetado) transcodifica a HLS
+VOD multi-bitrate, publica la salida y actualiza `estadoProcesamiento` →
+`EN_COLA`/`PROCESANDO`/`LISTO`/`ERROR` y `hlsPlaylistUrl` en el propio recurso.
+
+Probar en local:
+
+```bash
+# 1. Coloca un vídeo fuente
+mkdir -p apps/api/storage/source/peliculas && cp mi-video.mp4 apps/api/storage/source/peliculas/
+
+# 2. Encola (como admin): POST /api/v1/admin/procesamiento/contenido/<id>  { "claveOrigen": "peliculas/mi-video.mp4" }
+# 3. Cuando estadoProcesamiento sea LISTO, el master estará en:
+#    http://localhost:3000/media/<id>/master.m3u8
+```
+
+## Subida & almacenamiento (Fase 6)
+
+El almacenamiento se abstrae detrás de un contrato único (`Almacenamiento`) y se
+elige con `STORAGE_DRIVER`:
+
+- **`local`** (por defecto): origen en `MEDIA_SOURCE_DIR`, HLS servido desde disco.
+- **`r2`**: Cloudflare R2 vía API S3 (`@aws-sdk/client-s3`). Requiere `R2_ACCOUNT_ID`,
+  `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` y `R2_PUBLIC_BASE_URL`.
+
+**Flujo de subida (ambos drivers, mismo contrato):**
+
+1. `POST /admin/subidas/firmar` `{ "nombreArchivo": "peli.mp4", "contentType": "video/mp4" }`
+   → `{ "clave", "url", "metodo": "PUT", ... }`.
+2. El cliente hace `PUT <url>` con el archivo como cuerpo:
+   - `r2` → URL **prefirmada** directa a R2 (no pasa por la API).
+   - `local` → la `url` apunta a `PUT /admin/subidas/directa` (streaming a disco).
+3. Se usa la `clave` devuelta como `claveOrigen` al encolar la transcodificación (Fase 5).
+
+> **R2 en prod:** habilita el acceso público del bucket (subdominio `r2.dev` o dominio
+> propio) para servir el HLS, y configura **CORS** en el bucket si subes desde el navegador
+> con la URL prefirmada.

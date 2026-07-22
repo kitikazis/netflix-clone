@@ -1,6 +1,9 @@
+import { resolve } from 'node:path';
+import { ServerResponse } from 'node:http';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { configurations, validate } from '@/config';
+import { ConfigModule, ConfigType } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { configurations, mediaConfig, validate } from '@/config';
 import { DatabaseModule } from '@/database/database.module';
 import { RedisModule } from '@/redis/redis.module';
 import { HealthModule } from '@/health/health.module';
@@ -24,6 +27,26 @@ import { ProgresoVisualizacionModule } from '@/modules/progreso-visualizacion/pr
     // Infrastructure
     DatabaseModule,
     RedisModule,
+
+    // Sirve el HLS generado (Fase 5) bajo MEDIA_PUBLIC_PATH con MIME correcto.
+    ServeStaticModule.forRootAsync({
+      inject: [mediaConfig.KEY],
+      useFactory: (media: ConfigType<typeof mediaConfig>) => [
+        {
+          rootPath: resolve(media.outputDir),
+          serveRoot: media.publicPath,
+          serveStaticOptions: {
+            setHeaders: (res: ServerResponse, ruta: string) => {
+              if (ruta.endsWith('.m3u8')) {
+                res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+              } else if (ruta.endsWith('.ts')) {
+                res.setHeader('Content-Type', 'video/mp2t');
+              }
+            },
+          },
+        },
+      ],
+    }),
 
     // Cross-cutting
     HealthModule,

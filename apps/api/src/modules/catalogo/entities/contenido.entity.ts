@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { EntidadBase } from '@/common/entities/entidad-base';
 import { TipoContenido } from '../enums/tipo-contenido.enum';
+import { EstadoProcesamiento } from '../enums/estado-procesamiento.enum';
 import { Episodio } from './episodio.entity';
 import { Genero } from './genero.entity';
 
@@ -57,6 +58,32 @@ export class Contenido extends EntidadBase {
   @Index()
   @Column({ type: 'boolean', default: false })
   publicado: boolean;
+
+  // --- Pipeline de vídeo (solo PELICULA; en series el vídeo vive en el episodio) ---
+
+  @Index('idx_contenido_estado_procesamiento')
+  @Column({
+    type: 'enum',
+    enum: EstadoProcesamiento,
+    enumName: 'estado_procesamiento',
+    default: EstadoProcesamiento.PENDIENTE,
+  })
+  estadoProcesamiento: EstadoProcesamiento;
+
+  // Clave del vídeo fuente en el almacenamiento (ruta local hoy; objeto R2 en Fase 6).
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  videoOrigenClave: string | null;
+
+  // URL/ruta relativa del master.m3u8 servido una vez transcodificado.
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  hlsPlaylistUrl: string | null;
+
+  // Duración real detectada por ffprobe (segundos); base para el % visto.
+  @Column({ type: 'int', nullable: true })
+  duracionSegundos: number | null;
+
+  @Column({ type: 'text', nullable: true })
+  errorProcesamiento: string | null;
 
   @ManyToMany(() => Genero, (genero) => genero.contenidos)
   @JoinTable({

@@ -1,6 +1,7 @@
 import { plainToInstance, Type } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -78,6 +79,62 @@ export class EnvironmentVariables {
 
   @IsString()
   JWT_REFRESH_TTL = '7d';
+
+  // --- Media / pipeline de vídeo (Fase 5; todas opcionales con defaults) ---
+  @IsOptional()
+  @IsString()
+  MEDIA_SOURCE_DIR?: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIA_OUTPUT_DIR?: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIA_WORK_DIR?: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIA_PUBLIC_PATH?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(8)
+  MEDIA_TRANSCODE_CONCURRENCY?: number;
+
+  // --- Almacenamiento de objetos (Fase 6; R2_* solo requeridas si driver = r2) ---
+  @IsOptional()
+  @IsIn(['local', 'r2'])
+  STORAGE_DRIVER?: string;
+
+  @IsOptional()
+  @IsString()
+  R2_ACCOUNT_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  R2_ACCESS_KEY_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  R2_SECRET_ACCESS_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  R2_BUCKET?: string;
+
+  @IsOptional()
+  @IsString()
+  R2_PUBLIC_BASE_URL?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(60)
+  @Max(3600)
+  R2_PRESIGN_EXPIRES?: number;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {
