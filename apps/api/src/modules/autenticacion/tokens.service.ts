@@ -6,6 +6,7 @@ import Redis from 'ioredis';
 import { jwtConfig } from '@/config';
 import { REDIS_CLIENT } from '@/redis/redis.constants';
 import { duracionASegundos } from '@/common/utils/duracion';
+import { RolUsuario } from '@/modules/usuarios/enums/rol-usuario.enum';
 import {
   AccessTokenPayload,
   RefreshTokenPayload,
@@ -14,6 +15,7 @@ import {
 interface DatosAccess {
   sub: string;
   correo: string;
+  rol: RolUsuario;
   perfilId?: string;
   esInfantil?: boolean;
 }

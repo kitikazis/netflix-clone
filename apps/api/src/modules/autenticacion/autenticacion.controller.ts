@@ -57,6 +57,6 @@ export class AutenticacionController {
     @UsuarioActual() usuario: AccessTokenPayload,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.auth.seleccionarPerfil(usuario.sub, usuario.correo, id);
+    return this.auth.seleccionarPerfil(usuario.sub, usuario.correo, usuario.rol, id);
   }
 }

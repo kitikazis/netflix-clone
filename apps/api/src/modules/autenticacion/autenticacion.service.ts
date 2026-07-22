@@ -6,6 +6,7 @@ import {
 import { UsuariosService } from '@/modules/usuarios/usuarios.service';
 import { PerfilesService } from '@/modules/usuarios/perfiles.service';
 import { Usuario } from '@/modules/usuarios/entities/usuario.entity';
+import { RolUsuario } from '@/modules/usuarios/enums/rol-usuario.enum';
 import { RefreshTokenPayload } from '@/common/interfaces/token-payload.interface';
 import { HashService } from './hash.service';
 import { TokensService } from './tokens.service';
@@ -36,6 +37,7 @@ export class AutenticacionService {
     const tokens = await this.tokens.generarPar({
       sub: usuario.id,
       correo: usuario.correo,
+      rol: usuario.rol,
     });
 
     return { usuario: this.aPublico(usuario), perfiles: [perfil], tokens };
@@ -53,7 +55,11 @@ export class AutenticacionService {
     }
 
     const [tokens, perfiles] = await Promise.all([
-      this.tokens.generarPar({ sub: usuario.id, correo: usuario.correo }),
+      this.tokens.generarPar({
+        sub: usuario.id,
+        correo: usuario.correo,
+        rol: usuario.rol,
+      }),
       this.perfiles.listarDeUsuario(usuario.id),
     ]);
 
@@ -89,6 +95,7 @@ export class AutenticacionService {
     const tokens = await this.tokens.generarPar({
       sub: usuario.id,
       correo: usuario.correo,
+      rol: usuario.rol,
     });
     return { tokens };
   }
@@ -103,11 +110,17 @@ export class AutenticacionService {
     return { mensaje: 'Sesión cerrada' };
   }
 
-  async seleccionarPerfil(usuarioId: string, correo: string, perfilId: string) {
+  async seleccionarPerfil(
+    usuarioId: string,
+    correo: string,
+    rol: RolUsuario,
+    perfilId: string,
+  ) {
     const perfil = await this.perfiles.buscarPropio(usuarioId, perfilId);
     const accessToken = await this.tokens.firmarAccess({
       sub: usuarioId,
       correo,
+      rol,
       perfilId: perfil.id,
       esInfantil: perfil.esInfantil,
     });
