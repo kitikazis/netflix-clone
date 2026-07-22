@@ -28,12 +28,20 @@ async function bootstrap(): Promise<void> {
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
 
   // Global input validation: strip unknown props, reject extras, auto-transform payloads.
+  //
+  // Sin `enableImplicitConversion` a propósito. Esa opción coerce según el tipo
+  // declarado, y para un booleano hace `Boolean(valor)`: la cadena "false" que
+  // llega en una query string se convierte en `true`, de modo que
+  // `?publicado=false` filtraba justo al revés. Además pisaba los @Transform
+  // que precisamente estaban puestos para interpretarla bien.
+  //
+  // Las conversiones necesarias se declaran de forma explícita con @Type
+  // (ver PaginacionDto) o con pipes en el controlador.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      transformOptions: { enableImplicitConversion: true },
     }),
   );
 
