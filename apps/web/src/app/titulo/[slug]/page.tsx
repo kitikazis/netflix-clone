@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTitulo } from '@/lib/api';
-import { fondoConDegradado } from '@/lib/css';
+import { fondoImagen } from '@/lib/css';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,15 +18,15 @@ function duracion(min: number | null): string | null {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const titulo = await getTitulo(slug);
-  if (!titulo) return { title: 'Cinta no encontrada — Videoclub' };
+  if (!titulo) return { title: 'Título no encontrado — Kitiflix' };
 
   const descripcion =
     titulo.sinopsis ??
-    `${titulo.tipo === 'SERIE' ? 'Serie' : 'Película'} disponible en el videoclub.`;
+    `${titulo.tipo === 'SERIE' ? 'Serie' : 'Película'} disponible en Kitiflix.`;
   const imagen = titulo.backdropUrl ?? titulo.posterUrl;
 
   return {
-    title: `${titulo.titulo} — Videoclub`,
+    title: `${titulo.titulo} — Kitiflix`,
     description: descripcion,
     openGraph: {
       title: titulo.titulo,
@@ -49,21 +49,18 @@ export default async function FichaTitulo({ params }: Props) {
   const meta = [
     titulo.anioLanzamiento ? String(titulo.anioLanzamiento) : null,
     titulo.clasificacionEdad,
-    titulo.tipo === 'PELICULA' ? duracion(titulo.duracionMinutos) : `${episodios.length} EPISODIOS`,
+    titulo.tipo === 'PELICULA' ? duracion(titulo.duracionMinutos) : `${episodios.length} episodios`,
   ].filter(Boolean);
 
   return (
     <article className="ficha">
       <div
         className="ficha-hero"
-        style={fondoConDegradado(
-          titulo.backdropUrl,
-          'linear-gradient(180deg, rgba(10,5,16,.4), rgba(10,5,16,.95))',
-        )}
+        style={fondoImagen(titulo.backdropUrl)}
       >
         <div className="ficha-cuerpo">
           <span className={`vhs-tipo ${titulo.tipo === 'SERIE' ? 'serie' : 'peli'}`}>
-            {titulo.tipo === 'SERIE' ? 'SERIE' : 'PELÍCULA'}
+            {titulo.tipo === 'SERIE' ? 'Serie' : 'Película'}
           </span>
           <h1 className="ficha-titulo">{titulo.titulo}</h1>
           <div className="ficha-meta">{meta.join('  ·  ')}</div>
@@ -84,17 +81,17 @@ export default async function FichaTitulo({ params }: Props) {
             {titulo.tipo === 'PELICULA' ? (
               listo ? (
                 <Link href={`/ver/${titulo.slug}`} className="btn btn-play">
-                  ▶ REPRODUCIR
+                  Reproducir
                 </Link>
               ) : (
-                <span className="btn btn-off">SIN SEÑAL · SIN TRANSCODIFICAR</span>
+                <span className="btn btn-off">Aún no disponible</span>
               )
             ) : primerEpisodio ? (
               <Link href={`/ver/${titulo.slug}?episodio=${primerEpisodio.id}`} className="btn btn-play">
-                ▶ VER T{primerEpisodio.temporada} · E{primerEpisodio.numeroEpisodio}
+                Ver T{primerEpisodio.temporada} · E{primerEpisodio.numeroEpisodio}
               </Link>
             ) : (
-              <span className="btn btn-off">SIN EPISODIOS</span>
+              <span className="btn btn-off">Sin episodios</span>
             )}
           </div>
         </div>
@@ -103,7 +100,7 @@ export default async function FichaTitulo({ params }: Props) {
       {titulo.tipo === 'SERIE' && episodios.length > 0 && (
         <section className="episodios">
           <div className="fila-cab">
-            <span>▤ EPISODIOS</span>
+            <span>Episodios</span>
           </div>
           <ul className="lista-epis">
             {episodios.map((ep) => {
@@ -118,7 +115,7 @@ export default async function FichaTitulo({ params }: Props) {
                     {ep.sinopsis && <span className="epi-sinopsis">{ep.sinopsis}</span>}
                   </span>
                   <span className={`epi-estado ${epListo ? 'ok' : 'off'}`}>
-                    {epListo ? '▶' : 'SIN SEÑAL'}
+                    {epListo ? '▶' : 'Próximamente'}
                   </span>
                 </>
               );

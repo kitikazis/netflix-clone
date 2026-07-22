@@ -1,23 +1,17 @@
 import type { Metadata } from 'next';
 import { BarraSuperior } from '@/components/BarraSuperior';
+import { display, texto } from './fuentes';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Netflix Clone — Videoclub',
-  description: 'Proyecto de práctica — catálogo con SSR y reproductor HLS',
+  title: 'Kitiflix',
+  description: 'Catálogo de cine con reproducción en streaming',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${display.variable} ${texto.variable}`}>
       <body>
-        {/* Capas de pantalla CRT (compartidas por todas las páginas) */}
-        <div className="overlay grain" aria-hidden />
-        <div className="overlay scanlines" aria-hidden />
-        <div className="overlay vignette" aria-hidden />
-        <div className="overlay flicker" aria-hidden />
-        <div className="tracking" aria-hidden />
-
         <BarraSuperior />
         <main className="contenido">{children}</main>
 

@@ -76,12 +76,10 @@ export function ApiDespertando({ que = 'el catálogo' }: Props) {
   if (caida) {
     return (
       <div className="sin-senal">
-        ░▒▓ SIN PORTADORA ▓▒░
-        <br />
-        El servidor no responde. Vuelve a intentarlo en un rato.
-        <br />
+        <h2 className="estado-glitch">El servidor no responde</h2>
+        <p className="estado-txt">Puede que esté caído. Prueba de nuevo en un rato.</p>
         <button type="button" className="btn btn-fantasma" onClick={() => location.reload()}>
-          ↻ REINTENTAR
+          Reintentar
         </button>
       </div>
     );
@@ -89,11 +87,10 @@ export function ApiDespertando({ que = 'el catálogo' }: Props) {
 
   return (
     <div className="despertando" role="status" aria-live="polite">
-      <div className="despertando-rotulo">▶ RE B O B I N A N D O</div>
+      <div className="despertando-rotulo">Preparando la sesión</div>
       <p className="despertando-txt">
-        Encendiendo el proyector… El servidor estaba en reposo y tarda cerca de un
-        minuto en arrancar. {que.charAt(0).toUpperCase() + que.slice(1)} aparecerá
-        solo, no recargues.
+        El servidor estaba en reposo y tarda cerca de un minuto en despertar.
+        No hace falta que recargues: {que} aparecerá solo.
       </p>
       <div className="despertando-barra" aria-hidden>
         <span />

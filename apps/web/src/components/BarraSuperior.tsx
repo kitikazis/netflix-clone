@@ -26,8 +26,8 @@ export function BarraSuperior() {
     <header className="barra">
       <Link href="/" className="marca" aria-label="Inicio">
         <span className="marca-play">▶</span>
-        <span className="marca-txt">NETFLIX</span>
-        <span className="marca-cinta">VIDEOCLUB · CH 03</span>
+        <span className="marca-txt">Kitiflix</span>
+        
       </Link>
 
       {/* Suspense: el buscador lee los search params, que obligan a diferir el
@@ -38,7 +38,7 @@ export function BarraSuperior() {
 
       <nav className="barra-nav">
         <Link href="/" className="barra-link">
-          CATÁLOGO
+          Catálogo
         </Link>
         {sesion?.perfilActivo ? (
           <span className="barra-sesion">
@@ -46,15 +46,15 @@ export function BarraSuperior() {
               ◉ {sesion.perfilActivo.nombre}
             </Link>
             <button type="button" className="barra-btn" onClick={cambiarPerfil}>
-              CAMBIAR
+              Cambiar
             </button>
             <button type="button" className="barra-btn" onClick={salir}>
-              SALIR
+              Salir
             </button>
           </span>
         ) : (
           <Link href="/entrar" className="barra-btn">
-            ENTRAR
+            Entrar
           </Link>
         )}
       </nav>
