@@ -10,6 +10,7 @@ import {
   AdminEstadisticasController,
   AdminUsuariosController,
 } from './admin-usuarios.controller';
+import { AdminTablasController } from './admin-tablas.controller';
 
 /**
  * Usuarios y perfiles (multi-perfil por cuenta).
@@ -17,7 +18,12 @@ import {
  */
 @Module({
   imports: [TypeOrmModule.forFeature([Usuario, Perfil])],
-  controllers: [PerfilesController, AdminUsuariosController, AdminEstadisticasController],
+  controllers: [
+    PerfilesController,
+    AdminUsuariosController,
+    AdminEstadisticasController,
+    AdminTablasController,
+  ],
   providers: [UsuariosService, PerfilesService, AdminUsuariosService],
   exports: [UsuariosService, PerfilesService, TypeOrmModule],
 })
