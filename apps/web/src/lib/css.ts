@@ -11,11 +11,20 @@ export function urlCss(url: string | null | undefined): string | null {
   return url.replace(/["'\\()\s]/g, encodeURIComponent);
 }
 
-/** Estilo de fondo con degradado + imagen, o `undefined` si no hay imagen. */
-export function fondoConDegradado(
+/**
+ * Estilo de fondo con solo la imagen. El velo que garantiza la legibilidad del
+ * texto lo pone el CSS (`.hero::after`), no cada página: así el degradado vive
+ * junto a los colores del tema y no hay que repetirlo en cada llamada.
+ */
+export function fondoImagen(
   url: string | null | undefined,
-  degradado: string,
-): { backgroundImage: string } | undefined {
+): { backgroundImage: string; backgroundSize: string; backgroundPosition: string } | undefined {
   const limpia = urlCss(url);
-  return limpia ? { backgroundImage: `${degradado}, url("${limpia}")` } : undefined;
+  return limpia
+    ? {
+        backgroundImage: `url("${limpia}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center 20%',
+      }
+    : undefined;
 }

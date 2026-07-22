@@ -53,7 +53,7 @@ export function PortadaVHS({
             <span className={`vhs-tipo ${tipo === 'SERIE' ? 'serie' : 'peli'}`}>
               {tipo === 'SERIE' ? 'SERIE' : 'PELÍCULA'}
             </span>
-            {!listo && <span className="vhs-estado">SIN SEÑAL</span>}
+            {!listo && <span className="vhs-estado">Próximamente</span>}
           </div>
           <div className="vhs-etiqueta">
             <span className="vhs-titulo">{titulo}</span>

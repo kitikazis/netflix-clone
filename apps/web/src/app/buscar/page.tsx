@@ -25,9 +25,9 @@ export async function generateMetadata({
   const { q } = await searchParams;
   const titulo = q ? `“${q}” — Búsqueda` : 'Buscar en el catálogo';
   return {
-    title: `${titulo} · Videoclub`,
+    title: `${titulo} · Kitiflix`,
     description: q
-      ? `Resultados para “${q}” en el catálogo del videoclub.`
+      ? `Resultados para “${q}” en el catálogo de Kitiflix.`
       : 'Busca películas y series por título, tipo y género.',
   };
 }
@@ -111,10 +111,10 @@ export default async function Buscar({
     <div className="catalogo">
       <section className="fila">
         <div className="fila-cab">
-          <span>⌕ BÚSQUEDA</span>
+          <span>Búsqueda</span>
           {paginacion && (
             <span className="fila-perfil">
-              {paginacion.total} RESULTADO{paginacion.total === 1 ? '' : 'S'}
+              {paginacion.total} resultado{paginacion.total === 1 ? '' : 's'}
             </span>
           )}
         </div>
@@ -127,42 +127,42 @@ export default async function Buscar({
 
         <div className="filtros">
           <div className="filtros-grupo">
-            <span className="filtros-eti">TIPO</span>
+            <span className="filtros-eti">Tipo</span>
             <Filtro activo={!params.tipo} href={conParam(params, 'tipo', undefined)}>
-              TODO
+              Todo
             </Filtro>
             <Filtro
               activo={params.tipo === 'PELICULA'}
               href={conParam(params, 'tipo', 'PELICULA')}
             >
-              PELÍCULAS
+              Películas
             </Filtro>
             <Filtro
               activo={params.tipo === 'SERIE'}
               href={conParam(params, 'tipo', 'SERIE')}
             >
-              SERIES
+              Series
             </Filtro>
           </div>
 
           <div className="filtros-grupo">
-            <span className="filtros-eti">ORDEN</span>
+            <span className="filtros-eti">Orden</span>
             <Filtro activo={orden === 'RECIENTE'} href={conParam(params, 'orden', undefined)}>
-              RECIENTE
+              Reciente
             </Filtro>
             <Filtro activo={orden === 'TITULO'} href={conParam(params, 'orden', 'TITULO')}>
               A–Z
             </Filtro>
             <Filtro activo={orden === 'ANIO'} href={conParam(params, 'orden', 'ANIO')}>
-              AÑO
+              Año
             </Filtro>
           </div>
 
           {generos.length > 0 && (
             <div className="filtros-grupo">
-              <span className="filtros-eti">GÉNERO</span>
+              <span className="filtros-eti">Género</span>
               <Filtro activo={!params.genero} href={conParam(params, 'genero', undefined)}>
-                TODOS
+                Todos
               </Filtro>
               {generos.map((g: Genero) => (
                 <Filtro
@@ -170,7 +170,7 @@ export default async function Buscar({
                   activo={params.genero === g.slug}
                   href={conParam(params, 'genero', g.slug)}
                 >
-                  {g.nombre.toUpperCase()}
+                  {g.nombre}
                 </Filtro>
               ))}
             </div>
@@ -182,7 +182,7 @@ export default async function Buscar({
         ) : items.length === 0 ? (
           <div className="vacio">
             {params.q
-              ? `Ninguna cinta coincide con “${params.q}”.`
+              ? `No encontramos nada que coincida con “${params.q}”.`
               : 'Escribe algo en el buscador o ajusta los filtros.'}
           </div>
         ) : (
@@ -206,20 +206,20 @@ export default async function Buscar({
               <nav className="paginacion" aria-label="Paginación">
                 {pagina > 1 ? (
                   <Link href={conPagina(params, pagina - 1)} className="btn btn-fantasma">
-                    ◀◀ ANTERIOR
+                    Anterior
                   </Link>
                 ) : (
-                  <span className="btn btn-off">◀◀ ANTERIOR</span>
+                  <span className="btn btn-off">Anterior</span>
                 )}
                 <span className="paginacion-pos">
                   {pagina} / {totalPaginas}
                 </span>
                 {pagina < totalPaginas ? (
                   <Link href={conPagina(params, pagina + 1)} className="btn btn-fantasma">
-                    SIGUIENTE ▶▶
+                    Siguiente
                   </Link>
                 ) : (
-                  <span className="btn btn-off">SIGUIENTE ▶▶</span>
+                  <span className="btn btn-off">Siguiente</span>
                 )}
               </nav>
             )}

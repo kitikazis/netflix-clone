@@ -18,7 +18,7 @@ export async function generateMetadata({
 }: Props): Promise<Metadata> {
   const [{ slug }, { episodio: episodioId }] = await Promise.all([params, searchParams]);
   const titulo = await getTitulo(slug);
-  if (!titulo) return { title: 'Cinta no encontrada — Videoclub' };
+  if (!titulo) return { title: 'Título no encontrado — Kitiflix' };
 
   const ep = episodioId
     ? titulo.episodios?.find((e) => e.id === episodioId)
@@ -28,7 +28,7 @@ export async function generateMetadata({
     : titulo.titulo;
 
   return {
-    title: `▶ ${nombre} — Videoclub`,
+    title: `${nombre} — Kitiflix`,
     description: (ep?.sinopsis ?? titulo.sinopsis) || `Reproduciendo ${titulo.titulo}.`,
     // Una página de reproducción no aporta nada a un buscador y expone la
     // estructura de la biblioteca: fuera del índice.
@@ -78,7 +78,7 @@ export default async function VerTitulo({ params, searchParams }: Props) {
     <div className="ver">
       <div className="ver-cab">
         <Link href={`/titulo/${titulo.slug}`} className="ver-volver">
-          ◀◀ VOLVER A LA FICHA
+          ← Volver
         </Link>
         <span className="ver-titulo">{etiqueta}</span>
       </div>

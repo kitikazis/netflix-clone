@@ -22,7 +22,7 @@ export default function Error({
   return (
     <div className="estado-pagina">
       <div className="estado-panel">
-        <div className="estado-glitch">░▒▓ ERROR DE CINTA ▓▒░</div>
+        <div className="estado-glitch">Algo se ha torcido</div>
         <p className="estado-txt">
           Algo se ha enredado al cargar esta pantalla.
           {error.digest && (

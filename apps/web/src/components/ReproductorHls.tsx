@@ -288,9 +288,8 @@ export function ReproductorHls({
   if (!src) {
     return (
       <div className="player-vacio">
-        ░▒▓ SIN SEÑAL ▓▒░
-        <br />
-        Este título aún no está transcodificado.
+        <h2 className="estado-glitch">Aún no disponible</h2>
+        <p className="estado-txt">Este título todavía no se puede reproducir.</p>
       </div>
     );
   }
@@ -311,7 +310,7 @@ export function ReproductorHls({
         <div className="player-aviso player-reanudado">
           <span>▶ Reanudado en {formatear(reanudadoEn)}</span>
           <button type="button" className="player-btn" onClick={empezarDeNuevo}>
-            EMPEZAR DE NUEVO
+            Empezar de nuevo
           </button>
           <button
             type="button"
@@ -327,7 +326,7 @@ export function ReproductorHls({
       {cuentaAtras !== null && siguiente && (
         <div className="player-siguiente">
           <span className="player-siguiente-txt">
-            SIGUIENTE · {siguiente.etiqueta}
+            A continuación · {siguiente.etiqueta}
           </span>
           <div className="player-siguiente-acciones">
             <button
@@ -335,14 +334,14 @@ export function ReproductorHls({
               className="btn btn-play"
               onClick={() => router.push(siguiente.href)}
             >
-              ▶ VER AHORA ({cuentaAtras})
+              Ver ahora ({cuentaAtras})
             </button>
             <button
               type="button"
               className="btn btn-fantasma"
               onClick={() => setCuentaAtras(null)}
             >
-              CANCELAR
+              Cancelar
             </button>
           </div>
         </div>
@@ -351,7 +350,7 @@ export function ReproductorHls({
       <div className="player-barra">
         {niveles.length > 1 && (
           <label className="player-calidad">
-            <span>CALIDAD</span>
+            <span>Calidad</span>
             <select
               value={nivel}
               onChange={(e) => cambiarNivel(Number(e.target.value))}

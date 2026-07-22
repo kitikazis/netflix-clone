@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getCatalogo, getCatalogoOpcional, getGeneros } from '@/lib/api';
-import { fondoConDegradado } from '@/lib/css';
+import { fondoImagen } from '@/lib/css';
 import type { Contenido, Genero } from '@/lib/tipos';
 import { PortadaVHS } from '@/components/PortadaVHS';
 import { FilaContinuar } from '@/components/FilaContinuar';
@@ -15,9 +15,9 @@ const MAX_FILAS_GENERO = 4;
 const POR_FILA = 12;
 
 export const metadata: Metadata = {
-  title: 'Videoclub — Catálogo',
+  title: 'Kitiflix — Catálogo',
   description:
-    'Catálogo de películas y series del videoclub: portadas VHS, ficha y reproductor HLS.',
+    'Catálogo de películas y series del videoclub: busca, descubre y reproduce.',
 };
 
 async function cargarCatalogo(): Promise<{ items: Contenido[]; error: boolean }> {
@@ -60,31 +60,28 @@ export default async function Home() {
       {/* Héroe: título destacado o cabecera del videoclub */}
       <section
         className="hero"
-        style={fondoConDegradado(
-          destacado?.backdropUrl,
-          'linear-gradient(180deg, rgba(10,5,16,.35), rgba(10,5,16,.92))',
-        )}
+        style={fondoImagen(destacado?.backdropUrl)}
       >
         <div className="hero-cuerpo">
-          <div className="canal">VIDEOCLUB · DIGITAL</div>
+          <div className="canal">Destacado</div>
           {destacado ? (
             <>
               <h1 className="hero-titulo">{destacado.titulo}</h1>
               <p className="hero-sinopsis">{destacado.sinopsis ?? 'Sin sinopsis.'}</p>
               <div className="hero-acciones">
                 <Link href={`/ver/${destacado.slug}`} className="btn btn-play">
-                  ▶ REPRODUCIR
+                  Reproducir
                 </Link>
                 <Link href={`/titulo/${destacado.slug}`} className="btn btn-fantasma">
-                  + FICHA
+                  Más información
                 </Link>
               </div>
             </>
           ) : (
             <>
-              <h1 className="wordmark">Netflix</h1>
+              <h1 className="wordmark">Kitiflix</h1>
               <p className="subtitulo">
-                un <b>clon</b> de práctica
+                Cine para ver cuando te apetezca
               </p>
             </>
           )}
@@ -95,8 +92,8 @@ export default async function Home() {
 
       <section className="fila">
         <div className="fila-cab">
-          <span>▦ CATÁLOGO</span>
-          <span className="fila-perfil">{items.length} TÍTULOS</span>
+          <span>Catálogo</span>
+          <span className="fila-perfil">{items.length} títulos</span>
         </div>
 
         {error ? (
@@ -131,9 +128,9 @@ export default async function Home() {
       {filasGenero.map(({ genero, items: deGenero }) => (
         <section className="fila" key={genero.id}>
           <div className="fila-cab">
-            <span>▤ {genero.nombre.toUpperCase()}</span>
+            <span>{genero.nombre}</span>
             <Link href={`/buscar?genero=${genero.slug}`} className="fila-vertodo">
-              VER TODO ▶▶
+              Ver todo
             </Link>
           </div>
           <div className="carrusel">
