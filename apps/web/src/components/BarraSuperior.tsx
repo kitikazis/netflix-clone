@@ -3,12 +3,13 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { cerrarSesion, salirDelPerfil, useSesion } from '@/lib/sesion';
+import { cerrarSesion, salirDelPerfil, useEsAdmin, useSesion } from '@/lib/sesion';
 import { Buscador } from './Buscador';
 
 /** Barra superior estilo OSD de videograbadora: marca, buscador y sesión. */
 export function BarraSuperior() {
   const sesion = useSesion();
+  const esAdmin = useEsAdmin();
   const router = useRouter();
 
   async function salir() {
@@ -37,6 +38,13 @@ export function BarraSuperior() {
       </Suspense>
 
       <nav className="barra-nav">
+        {/* Se muestra según el rol del token, pero quien autoriza de verdad es
+            la API: forzar esto en el navegador solo enseña un enlace. */}
+        {esAdmin && (
+          <Link href="/admin" className="barra-link">
+            Administrar
+          </Link>
+        )}
         <Link href="/" className="barra-link">
           Catálogo
         </Link>

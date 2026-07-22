@@ -559,6 +559,77 @@ a { color: inherit; }
 .paginacion-pos { color: var(--tinta-suave); }
 
 /* ============================================================
+   ADMINISTRACIÓN
+   Mismo lenguaje de filetes y versalitas que el resto: una hoja de
+   trabajo impresa, no un panel de control aparte.
+   ============================================================ */
+
+.admin-barra {
+  display: flex; align-items: center; gap: var(--e3); flex-wrap: wrap;
+}
+.admin-barra .buscador { max-width: 20rem; }
+.admin-barra .btn-play { margin-left: auto; }
+
+.admin-tabla-marco { overflow-x: auto; }
+.admin-tabla { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
+.admin-tabla th {
+  text-align: left; font-weight: 400; padding: 0 var(--e2) var(--e1) 0;
+  border-bottom: 1px solid var(--filete-fuerte);
+  font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+  text-transform: uppercase; color: var(--tinta-suave); white-space: nowrap;
+}
+.admin-tabla td {
+  padding: var(--e2) var(--e2) var(--e2) 0;
+  border-bottom: 1px solid var(--filete); vertical-align: baseline;
+}
+.admin-tabla tr:hover td { background: var(--papel-alto); }
+.admin-titulo { font-family: var(--display); font-size: var(--t-md); text-decoration: none; }
+.admin-titulo:hover { text-decoration: underline; text-underline-offset: 3px; }
+.admin-marca {
+  margin-left: var(--e1); font-size: var(--t-xs);
+  letter-spacing: var(--rotulo-espaciado); text-transform: uppercase; color: var(--tinta-roja);
+}
+.admin-si { color: var(--exito); }
+.admin-no { color: var(--tinta-suave); }
+.admin-estado {
+  font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+  color: var(--tinta-suave); white-space: nowrap;
+}
+.admin-acciones { display: flex; gap: var(--e2); justify-content: flex-end; white-space: nowrap; }
+
+/* ---------- Formulario ---------- */
+.admin-form { display: flex; flex-direction: column; gap: var(--e3); max-width: 54rem; }
+.admin-form-cab {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--e2);
+  padding-bottom: var(--e1); border-bottom: 2px solid var(--filete-fuerte);
+}
+.admin-form-cab h2 { font-size: var(--t-xl); }
+.admin-campos {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--e3);
+}
+.admin-ancho { grid-column: 1 / -1; }
+.admin-campos select, .admin-campos textarea {
+  font-family: inherit; font-size: var(--t-base); color: var(--tinta);
+  background: none; border: none; border-bottom: 1px solid var(--filete);
+  padding: 0.5rem 0; resize: vertical;
+}
+.admin-campos select:focus, .admin-campos textarea:focus {
+  outline: none; border-color: var(--tinta);
+}
+.admin-generos { border: none; border-top: 1px solid var(--filete); padding: var(--e3) 0 0; margin: 0; }
+.admin-generos legend {
+  font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+  text-transform: uppercase; color: var(--tinta-suave); padding: 0;
+}
+.admin-generos-lista { display: flex; flex-wrap: wrap; gap: var(--e2) var(--e3); margin-top: var(--e2); }
+.admin-conmutadores {
+  display: flex; flex-direction: column; gap: var(--e2);
+  border-top: 1px solid var(--filete); padding-top: var(--e3);
+}
+.admin-form-acciones { display: flex; gap: var(--e3); align-items: center; }
+
+/* ============================================================
    PIE
    ============================================================ */
 
