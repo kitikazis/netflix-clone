@@ -13,10 +13,35 @@ import type { Contenido, Genero, Paginacion } from '@/lib/tipos';
 import { FormularioContenido } from '@/components/admin/FormularioContenido';
 import { PanelUsuarios } from '@/components/admin/PanelUsuarios';
 import { PanelResumen } from '@/components/admin/PanelResumen';
+import {
+  PanelEpisodios,
+  PanelGeneros,
+  PanelPerfiles,
+  PanelProgreso,
+} from '@/components/admin/tablas';
 
 const LIMITE = 20;
 
-type Pestana = 'catalogo' | 'usuarios' | 'resumen';
+/** Orden del dashboard: primero el resumen, luego catálogo y luego cuentas,
+    cada bloque de lo general a lo detallado. */
+type Pestana =
+  | 'resumen'
+  | 'catalogo'
+  | 'episodios'
+  | 'generos'
+  | 'usuarios'
+  | 'perfiles'
+  | 'progreso';
+
+const PESTANAS: Array<[Pestana, string]> = [
+  ['resumen', 'Resumen'],
+  ['catalogo', 'Catálogo'],
+  ['episodios', 'Episodios'],
+  ['generos', 'Géneros'],
+  ['usuarios', 'Cuentas'],
+  ['perfiles', 'Perfiles'],
+  ['progreso', 'Progreso'],
+];
 
 export default function Admin() {
   const sesion = useSesion();
@@ -35,7 +60,7 @@ export default function Admin() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [borrando, setBorrando] = useState<string | null>(null);
-  const [pestana, setPestana] = useState<Pestana>('catalogo');
+  const [pestana, setPestana] = useState<Pestana>('resumen');
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -146,13 +171,7 @@ export default function Admin() {
         <div className="fila-cab">
           <span>Administración</span>
           <nav className="admin-pestanas">
-            {(
-              [
-                ['catalogo', 'Catálogo'],
-                ['usuarios', 'Cuentas'],
-                ['resumen', 'Resumen'],
-              ] as Array<[Pestana, string]>
-            ).map(([clave, etiqueta]) => (
+            {PESTANAS.map(([clave, etiqueta]) => (
               <button
                 key={clave}
                 type="button"
@@ -166,8 +185,12 @@ export default function Admin() {
           </nav>
         </div>
 
-        {pestana === 'usuarios' && <PanelUsuarios />}
         {pestana === 'resumen' && <PanelResumen />}
+        {pestana === 'usuarios' && <PanelUsuarios />}
+        {pestana === 'perfiles' && <PanelPerfiles />}
+        {pestana === 'episodios' && <PanelEpisodios />}
+        {pestana === 'generos' && <PanelGeneros />}
+        {pestana === 'progreso' && <PanelProgreso />}
         {pestana === 'catalogo' && (
         <>
 

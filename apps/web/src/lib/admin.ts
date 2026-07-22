@@ -157,3 +157,56 @@ export function eliminarUsuario(id: string): Promise<void> {
 export function obtenerEstadisticas(): Promise<Estadisticas> {
   return peticionCuenta<Estadisticas>('/admin/estadisticas');
 }
+
+// ---------------------------------------------------------------------------
+// Listados de solo lectura del resto de tablas
+// ---------------------------------------------------------------------------
+
+export interface PerfilAdmin {
+  id: string;
+  nombre: string;
+  esInfantil: boolean;
+  idioma: string;
+  fechaCreacion: string;
+  cuenta: string;
+}
+
+export interface EpisodioAdmin {
+  id: string;
+  temporada: number;
+  numeroEpisodio: number;
+  titulo: string;
+  duracionMinutos: number | null;
+  estadoProcesamiento: string;
+  serie: string;
+  serieSlug: string;
+}
+
+export interface ProgresoAdmin {
+  id: string;
+  segundoActual: number;
+  duracionTotal: number;
+  completado: boolean;
+  actualizado: string;
+  perfil: string;
+  titulo: string;
+  episodio: string | null;
+}
+
+export interface GeneroAdmin extends Genero {
+  titulos: number;
+}
+
+export type TablaAdmin = 'perfiles' | 'episodios' | 'progreso' | 'generos';
+
+export function listarTabla<T>(
+  tabla: TablaAdmin,
+  filtros: { q?: string; pagina?: number; limite?: number } = {},
+): Promise<Pagina<T>> {
+  const qs = new URLSearchParams();
+  for (const [clave, valor] of Object.entries(filtros)) {
+    if (valor !== undefined && valor !== '') qs.set(clave, String(valor));
+  }
+  const cola = qs.toString();
+  return peticionCuenta<Pagina<T>>(`/admin/tablas/${tabla}${cola ? `?${cola}` : ''}`);
+}
