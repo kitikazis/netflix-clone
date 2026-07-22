@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { getCatalogo, getGeneros } from '@/lib/api';
 import type { Contenido, Genero, Paginacion } from '@/lib/tipos';
 import { PortadaVHS } from '@/components/PortadaVHS';
+import { ApiDespertando } from '@/components/ApiDespertando';
 
 export const dynamic = 'force-dynamic';
 
@@ -177,11 +178,7 @@ export default async function Buscar({
         </div>
 
         {error ? (
-          <div className="sin-senal">
-            ░▒▓ SIN PORTADORA ▓▒░
-            <br />
-            No hay respuesta de la API.
-          </div>
+          <ApiDespertando que="los resultados" />
         ) : items.length === 0 ? (
           <div className="vacio">
             {params.q

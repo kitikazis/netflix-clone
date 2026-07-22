@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { API_BASE_URL, getCatalogo, getCatalogoOpcional, getGeneros } from '@/lib/api';
+import { getCatalogo, getCatalogoOpcional, getGeneros } from '@/lib/api';
 import { fondoConDegradado } from '@/lib/css';
 import type { Contenido, Genero } from '@/lib/tipos';
 import { PortadaVHS } from '@/components/PortadaVHS';
 import { FilaContinuar } from '@/components/FilaContinuar';
+import { ApiDespertando } from '@/components/ApiDespertando';
 
 // El catálogo se pide en cada request (contenido que cambia, no en build).
 export const dynamic = 'force-dynamic';
@@ -99,13 +100,10 @@ export default async function Home() {
         </div>
 
         {error ? (
-          <div className="sin-senal">
-            ░▒▓ SIN PORTADORA ▓▒░
-            <br />
-            No hay respuesta de <code>{API_BASE_URL}</code>
-            <br />
-            Enciende el backend: <code>npm run dev:api</code>
-          </div>
+          // No se distingue aquí entre "dormida" y "caída": lo decide el
+          // componente sondeando, y así el caso normal (arranque en frío del
+          // hosting gratuito) no se presenta como un error.
+          <ApiDespertando />
         ) : items.length === 0 ? (
           <div className="vacio">
             No hay títulos publicados todavía.

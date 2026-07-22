@@ -540,6 +540,40 @@ body {
 .vacio { color: var(--ink-dim); text-align: center; padding: 2rem 1rem; letter-spacing: 0.06em; line-height: 1.7; }
 .vacio code, .sin-senal code { color: var(--amber); }
 
+/* ---------- API arrancando (hosting gratuito, arranque en frío) ---------- */
+.despertando {
+  display: flex; flex-direction: column; align-items: center; gap: 0.9rem;
+  text-align: center; padding: clamp(2rem, 8vh, 4rem) 1rem;
+  border: 1px dashed var(--linea); background: rgba(255, 255, 255, 0.02);
+}
+.despertando-rotulo {
+  font-family: var(--display); font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+  letter-spacing: 0.22em; color: var(--amber);
+  text-shadow: -0.03em 0 rgba(255, 45, 120, 0.6), 0.03em 0 rgba(55, 230, 255, 0.6);
+}
+.despertando-txt {
+  margin: 0; max-width: 34rem; color: var(--ink-dim);
+  font-size: 0.75rem; letter-spacing: 0.05em; line-height: 1.8;
+}
+.despertando-barra {
+  width: min(22rem, 80%); height: 4px; background: var(--linea); overflow: hidden;
+}
+.despertando-barra span {
+  display: block; width: 35%; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--magenta), var(--amber), transparent);
+  animation: rebobinar 1.4s ease-in-out infinite;
+}
+.despertando-tiempo {
+  font-size: 0.68rem; letter-spacing: 0.2em; color: var(--osd);
+}
+@keyframes rebobinar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(320%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .despertando-barra span { animation: none; width: 100%; opacity: 0.5; }
+}
+
 /* ---------- Pie ---------- */
 .pie {
   display: flex; flex-direction: column; gap: 0.35rem; align-items: center; text-align: center;

@@ -8,9 +8,26 @@ interface Envoltura<T> {
   data: T;
 }
 
+/**
+ * Corte de las peticiones del SSR.
+ *
+ * En hosting gratuito la API se duerme por inactividad y tarda ~50 s en
+ * levantar. Sin límite, el render en servidor se queda esperando y lo acaba
+ * cortando la plataforma, así que la página no llega a pintarse. Cortando
+ * pronto se devuelve el esqueleto enseguida y es el navegador quien espera a
+ * que la API despierte (ver `ApiDespertando`).
+ *
+ * La petición que provoca el timeout NO se desperdicia: ya llegó al servidor y
+ * es la que dispara el arranque.
+ */
+const TIEMPO_MAXIMO_SSR_MS = 5000;
+
 /** GET a la API (SSR) que desenvuelve el sobre `{ data }`. Lanza si no-2xx. */
 async function pedir<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, { cache: 'no-store' });
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(TIEMPO_MAXIMO_SSR_MS),
+  });
   if (!res.ok) {
     throw new Error(`API ${res.status} en ${path}`);
   }
