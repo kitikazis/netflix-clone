@@ -692,3 +692,9 @@ a { color: inherit; }
 }
 .acceso-pie { display: flex; justify-content: space-between; gap: var(--e2); flex-wrap: wrap; }
 .acceso-pie .link-modo:disabled { opacity: 0.45; cursor: not-allowed; text-decoration: none; }
+
+/* Los botones de acceso llevan la marca del proveedor: se centra el conjunto y
+   el icono no se deja encoger cuando el texto es largo. */
+.acceso-alterno .btn { justify-content: center; }
+.acceso-alterno .btn svg { flex-shrink: 0; }
+.acceso-alterno .btn:disabled svg { opacity: 0.55; }

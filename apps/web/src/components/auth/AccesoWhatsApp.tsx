@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { solicitarCodigoWhatsApp, verificarCodigoWhatsApp } from '@/lib/sesion';
+import { IconoWhatsApp } from './iconos';
 
 const ACTIVO = process.env.NEXT_PUBLIC_AUTH_WHATSAPP === 'true';
 /** Espera antes de poder pedir otro código, para no gastar el cupo de envíos. */
@@ -36,6 +37,7 @@ export function AccesoWhatsApp({ alEntrar }: Props) {
     return (
       <div className="acceso-alterno">
         <button type="button" className="btn btn-fantasma" disabled>
+          <IconoWhatsApp />
           Continuar con WhatsApp
         </button>
         <p className="acceso-nota">Todavía no está disponible.</p>
@@ -94,6 +96,7 @@ export function AccesoWhatsApp({ alEntrar }: Props) {
         </label>
         {error && <div className="form-error">{error}</div>}
         <button type="submit" className="btn btn-fantasma" disabled={ocupado}>
+          <IconoWhatsApp />
           {ocupado ? 'Enviando…' : 'Enviarme un código'}
         </button>
       </form>

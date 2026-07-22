@@ -11,6 +11,7 @@ import {
 } from '@/lib/sesion';
 import { BotonGoogle } from '@/components/auth/BotonGoogle';
 import { AccesoWhatsApp } from '@/components/auth/AccesoWhatsApp';
+import { IconoWhatsApp } from '@/components/auth/iconos';
 
 export default function Entrar() {
   const sesion = useSesion();
@@ -162,6 +163,7 @@ export default function Entrar() {
             className="btn btn-fantasma"
             onClick={() => setVia('whatsapp')}
           >
+            <IconoWhatsApp />
             Continuar con WhatsApp
           </button>
         )}

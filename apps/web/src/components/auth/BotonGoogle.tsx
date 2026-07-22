@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { iniciarSesionConGoogle } from '@/lib/sesion';
+import { IconoGoogle } from './iconos';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 const SCRIPT = 'https://accounts.google.com/gsi/client';
@@ -97,6 +98,7 @@ export function BotonGoogle({ alEntrar }: Props) {
     return (
       <div className="acceso-alterno">
         <button type="button" className="btn btn-fantasma" disabled>
+          <IconoGoogle />
           Continuar con Google
         </button>
         <p className="acceso-nota">
