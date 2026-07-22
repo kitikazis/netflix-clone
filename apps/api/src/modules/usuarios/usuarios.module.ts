@@ -5,6 +5,11 @@ import { Perfil } from './entities/perfil.entity';
 import { UsuariosService } from './usuarios.service';
 import { PerfilesService } from './perfiles.service';
 import { PerfilesController } from './perfiles.controller';
+import { AdminUsuariosService } from './admin-usuarios.service';
+import {
+  AdminEstadisticasController,
+  AdminUsuariosController,
+} from './admin-usuarios.controller';
 
 /**
  * Usuarios y perfiles (multi-perfil por cuenta).
@@ -12,8 +17,8 @@ import { PerfilesController } from './perfiles.controller';
  */
 @Module({
   imports: [TypeOrmModule.forFeature([Usuario, Perfil])],
-  controllers: [PerfilesController],
-  providers: [UsuariosService, PerfilesService],
+  controllers: [PerfilesController, AdminUsuariosController, AdminEstadisticasController],
+  providers: [UsuariosService, PerfilesService, AdminUsuariosService],
   exports: [UsuariosService, PerfilesService, TypeOrmModule],
 })
 export class UsuariosModule {}

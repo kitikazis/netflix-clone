@@ -11,8 +11,12 @@ import {
 } from '@/lib/admin';
 import type { Contenido, Genero, Paginacion } from '@/lib/tipos';
 import { FormularioContenido } from '@/components/admin/FormularioContenido';
+import { PanelUsuarios } from '@/components/admin/PanelUsuarios';
+import { PanelResumen } from '@/components/admin/PanelResumen';
 
 const LIMITE = 20;
+
+type Pestana = 'catalogo' | 'usuarios' | 'resumen';
 
 export default function Admin() {
   const sesion = useSesion();
@@ -31,6 +35,7 @@ export default function Admin() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [borrando, setBorrando] = useState<string | null>(null);
+  const [pestana, setPestana] = useState<Pestana>('catalogo');
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -52,8 +57,8 @@ export default function Admin() {
   }, [pagina, busqueda, soloBorradores]);
 
   useEffect(() => {
-    if (esAdmin) void cargar();
-  }, [esAdmin, cargar]);
+    if (esAdmin && pestana === 'catalogo') void cargar();
+  }, [esAdmin, pestana, cargar]);
 
   useEffect(() => {
     if (!esAdmin) return;
@@ -140,10 +145,31 @@ export default function Admin() {
       <section className="fila">
         <div className="fila-cab">
           <span>Administración</span>
-          {paginacion && (
-            <span className="fila-perfil">{paginacion.total} títulos</span>
-          )}
+          <nav className="admin-pestanas">
+            {(
+              [
+                ['catalogo', 'Catálogo'],
+                ['usuarios', 'Cuentas'],
+                ['resumen', 'Resumen'],
+              ] as Array<[Pestana, string]>
+            ).map(([clave, etiqueta]) => (
+              <button
+                key={clave}
+                type="button"
+                className={`filtro ${pestana === clave ? 'activo' : ''}`}
+                aria-current={pestana === clave ? 'page' : undefined}
+                onClick={() => setPestana(clave)}
+              >
+                {etiqueta}
+              </button>
+            ))}
+          </nav>
         </div>
+
+        {pestana === 'usuarios' && <PanelUsuarios />}
+        {pestana === 'resumen' && <PanelResumen />}
+        {pestana === 'catalogo' && (
+        <>
 
         <div className="admin-barra">
           <form className="buscador" onSubmit={buscar} role="search">
@@ -258,6 +284,8 @@ export default function Admin() {
               Siguiente
             </button>
           </nav>
+        )}
+        </>
         )}
       </section>
     </div>

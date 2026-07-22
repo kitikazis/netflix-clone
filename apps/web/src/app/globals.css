@@ -570,6 +570,32 @@ a { color: inherit; }
 .admin-barra .buscador { max-width: 20rem; }
 .admin-barra .btn-play { margin-left: auto; }
 
+.admin-pestanas { display: flex; gap: var(--e2); flex-wrap: wrap; }
+.admin-pestanas .filtro {
+  background: none; border: none; border-bottom: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+}
+
+/* Resumen por tablas */
+.admin-resumen { display: flex; flex-direction: column; gap: var(--e4); }
+.admin-grupo-tit {
+  font-family: var(--display); font-size: var(--t-lg); margin: 0 0 var(--e2);
+  padding-bottom: var(--e1); border-bottom: 1px solid var(--filete);
+}
+.admin-cifras {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--e3); margin: 0;
+}
+.admin-cifra { display: flex; flex-direction: column; gap: 0.15rem; }
+.admin-cifra dt {
+  font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+  text-transform: uppercase; color: var(--tinta-suave);
+}
+.admin-cifra dd {
+  margin: 0; font-family: var(--display); font-size: var(--t-xl);
+  font-variant-numeric: tabular-nums;
+}
+
 .admin-tabla-marco { overflow-x: auto; }
 .admin-tabla { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
 .admin-tabla th {

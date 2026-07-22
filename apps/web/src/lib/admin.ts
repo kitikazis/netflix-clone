@@ -100,3 +100,60 @@ function limpiar<T extends object>(datos: T): Partial<T> {
   }
   return salida as Partial<T>;
 }
+
+// ---------------------------------------------------------------------------
+// Cuentas y resumen de la base
+// ---------------------------------------------------------------------------
+
+export interface UsuarioAdmin {
+  id: string;
+  correo: string;
+  rol: 'USUARIO' | 'ADMIN';
+  activo: boolean;
+  fechaCreacion: string;
+  perfiles: number;
+}
+
+export interface Estadisticas {
+  usuarios: number;
+  administradores: number;
+  inactivos: number;
+  perfiles: number;
+  contenido: number;
+  publicados: number;
+  peliculas: number;
+  series: number;
+  transcodificados: number;
+  episodios: number;
+  generos: number;
+  progresos: number;
+}
+
+export function listarUsuarios(
+  filtros: { q?: string; pagina?: number; limite?: number } = {},
+): Promise<Pagina<UsuarioAdmin>> {
+  const qs = new URLSearchParams();
+  for (const [clave, valor] of Object.entries(filtros)) {
+    if (valor !== undefined && valor !== '') qs.set(clave, String(valor));
+  }
+  const cola = qs.toString();
+  return peticionCuenta<Pagina<UsuarioAdmin>>(`/admin/usuarios${cola ? `?${cola}` : ''}`);
+}
+
+export function actualizarUsuario(
+  id: string,
+  datos: { rol?: 'USUARIO' | 'ADMIN'; activo?: boolean },
+): Promise<UsuarioAdmin> {
+  return peticionCuenta<UsuarioAdmin>(`/admin/usuarios/${id}`, {
+    method: 'PATCH',
+    body: datos,
+  });
+}
+
+export function eliminarUsuario(id: string): Promise<void> {
+  return peticionCuenta<void>(`/admin/usuarios/${id}`, { method: 'DELETE' });
+}
+
+export function obtenerEstadisticas(): Promise<Estadisticas> {
+  return peticionCuenta<Estadisticas>('/admin/estadisticas');
+}
