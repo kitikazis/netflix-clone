@@ -19,6 +19,8 @@ interface Props {
   prioridad?: boolean;
   /** Si se pasa, muestra el botón de quitar de "continuar viendo". */
   alQuitar?: () => void;
+  /** Número de orden en el catálogo; se imprime sobre la lámina. */
+  indice?: number;
 }
 
 /** Carátula estilo carcasa VHS con etiqueta impresa. */
@@ -34,6 +36,7 @@ export function PortadaVHS({
   subtitulo,
   prioridad,
   alQuitar,
+  indice,
 }: Props) {
   const listo = !estado || estado === 'LISTO';
 
@@ -43,6 +46,13 @@ export function PortadaVHS({
     <div className="vhs-slot">
       <Link href={href ?? `/titulo/${slug}`} className="vhs" title={titulo}>
         <div className="vhs-carcasa">
+          {indice !== undefined && (
+            // Número de orden, como en una programación impresa. Decorativo:
+            // el lector de pantalla ya anuncia el título del enlace.
+            <span className="vhs-indice" aria-hidden>
+              {String(indice).padStart(3, '0')}
+            </span>
+          )}
           <div className="vhs-poster">
             <PosterImagen
               src={posterUrl}

@@ -198,6 +198,7 @@ export default async function Buscar({
                   anio={c.anioLanzamiento}
                   estado={c.estadoProcesamiento}
                   prioridad={i < 6}
+                  indice={(pagina - 1) * LIMITE + i + 1}
                 />
               ))}
             </div>

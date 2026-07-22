@@ -54,10 +54,8 @@ export default async function FichaTitulo({ params }: Props) {
 
   return (
     <article className="ficha">
-      <div
-        className="ficha-hero"
-        style={fondoImagen(titulo.backdropUrl)}
-      >
+      <div className="ficha-hero">
+        <div className="hero-lamina" style={fondoImagen(titulo.posterUrl)} aria-hidden />
         <div className="ficha-cuerpo">
           <span className={`vhs-tipo ${titulo.tipo === 'SERIE' ? 'serie' : 'peli'}`}>
             {titulo.tipo === 'SERIE' ? 'Serie' : 'Película'}
