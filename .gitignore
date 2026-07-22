@@ -45,3 +45,7 @@ storage/
 # Netlify: artefactos de build (funciones empaquetadas, manifiestos, caché)
 .netlify/
 out/
+
+# Playwright
+test-results/
+playwright-report/

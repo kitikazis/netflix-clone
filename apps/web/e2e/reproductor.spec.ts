@@ -9,16 +9,23 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
  * cambia según lo que se haya subido; una prueba clavada a un slug concreto se
  * rompe por el motivo equivocado.
  */
-async function slugReproducible(page: Page): Promise<string> {
-  const res = await page.request.get(`${API}/catalogo/contenido?limite=100`);
+async function catalogo(page: Page, consulta = ''): Promise<Titulo[]> {
+  const res = await page.request.get(`${API}/catalogo/contenido?limite=100${consulta}`);
   expect(res.ok(), `el catálogo no responde en ${API}`).toBeTruthy();
-  const cuerpo = await res.json();
-  const items = cuerpo.data?.items ?? cuerpo.data ?? [];
-  const listo = items.find(
-    (c: { hlsPlaylistUrl?: string | null }) => !!c.hlsPlaylistUrl,
-  );
+  const cuerpo = (await res.json()) as { data: { datos: Titulo[] } };
+  return cuerpo.data.datos;
+}
+
+interface Titulo {
+  slug: string;
+  titulo: string;
+  hlsPlaylistUrl: string | null;
+}
+
+async function slugReproducible(page: Page): Promise<string> {
+  const listo = (await catalogo(page)).find((c) => !!c.hlsPlaylistUrl);
   test.skip(!listo, 'no hay ningún título transcodificado en este entorno');
-  return listo.slug;
+  return listo!.slug;
 }
 
 /** Despierta los controles: se esconden solos a los 2,8 s. */
@@ -89,7 +96,8 @@ test.describe('reproductor', () => {
 
     // La última de la lista es la más baja; sirve igual para ver que queda fijada.
     await opciones.last().click();
-    await abrirAjustes(page);
+    // Al elegir se vuelve a la raíz del menú, que sigue abierta: no hay que
+    // volver a pulsar el engranaje, porque eso lo cerraría.
     await expect(page.getByRole('menuitem', { name: /Calidad/ })).not.toContainText(
       'Automática',
     );
@@ -126,12 +134,21 @@ test.describe('catálogo', () => {
   });
 
   test('el buscador sugiere mientras se escribe', async ({ page }) => {
+    // El término sale del propio catálogo para que la prueba no dependa de qué
+    // películas haya cargadas en cada entorno.
+    const titulos = await catalogo(page);
+    const palabra = titulos
+      .flatMap((c) => c.titulo.split(/\s+/))
+      .find((p) => p.length >= 6 && /^[a-záéíóúñ]+$/i.test(p));
+    test.skip(!palabra, 'el catálogo está vacío');
+
     await page.goto('/');
-    await page.getByLabel('Buscar en el catálogo').fill('batman');
+    await page.getByLabel('Buscar en el catálogo').fill(palabra!);
     const sugerencias = page.getByRole('option');
     await expect.poll(() => sugerencias.count(), { timeout: 30_000 }).toBeGreaterThan(0);
-    // Se busca solo por título: nada de coincidencias escondidas en la sinopsis.
-    await expect(sugerencias.first()).toContainText(/batman/i);
+    // Se busca solo por título: nada de coincidencias escondidas en la sinopsis,
+    // que era lo que devolvía ochenta y ocho resultados para una palabra suelta.
+    await expect(sugerencias.first()).toContainText(new RegExp(palabra!, 'i'));
   });
 
   test('un título inexistente devuelve un 404 de verdad', async ({ page }) => {

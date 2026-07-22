@@ -1,0 +1,43 @@
+name: Extremo a extremo
+
+# A mano, y contra un despliegue ya en pie.
+#
+# No va en el CI de cada push porque estas pruebas necesitan catálogo real y un
+# título transcodificado: montar Postgres, Redis y el vídeo en cada commit
+# costaría varios minutos para comprobar algo que solo cambia cuando se toca el
+# reproductor. Se lanza cuando eso pasa, o antes de dar por buena una release.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'URL del front (por ejemplo, la previsualización de Netlify)'
+        required: true
+      api_url:
+        description: 'URL de la API, con /api/v1 al final'
+        required: true
+
+jobs:
+  reproductor:
+    name: Reproductor y catálogo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run e2e --workspace @netflix-clone/web
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+          NEXT_PUBLIC_API_URL: ${{ inputs.api_url }}
+      # El rastro de la ejecución fallida vale más que el log: trae capturas,
+      # peticiones y el DOM en el momento del fallo.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: rastro-playwright
+          path: apps/web/test-results
+          retention-days: 7

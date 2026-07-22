@@ -191,6 +191,32 @@ registro/login (/entrar) → elegir perfil → catálogo (/) → ficha → ▶ v
    → "continuar viendo" aparece en la home
 ```
 
+## Pruebas
+
+```bash
+npm run lint            # ESLint en las dos apps
+npm test                # unitarias: Jest en la API, Vitest en el front
+```
+
+Las unitarias no necesitan infraestructura: la API usa dobles en vez de Postgres
+y Redis, así que arrancan en segundos. Es lo que corre en cada push
+(`.github/workflows/ci.yml`), junto con la compilación de ambas.
+
+Aparte están las de extremo a extremo, con Playwright:
+
+```bash
+npm run start:dev -w @netflix-clone/api          # hace falta la API en pie
+npm run e2e -w @netflix-clone/web                # levanta el front solo
+BASE_URL=https://... npm run e2e -w @netflix-clone/web   # o contra un despliegue
+```
+
+Estas sí necesitan catálogo real y un título transcodificado, por eso no van en
+cada push sino a mano (`.github/workflows/e2e.yml`). Existen por un motivo
+concreto: el selector de calidad estuvo roto en producción y ninguna
+comprobación lo vio, porque todas miraban respuestas HTTP y ninguna llegaba a
+ejecutar hls.js en un navegador. El vídeo se veía; solo abrir el menú lo
+delataba.
+
 ## Despliegue
 
 Las dos apps van en imágenes propias, con Postgres y Redis al lado. El contexto de

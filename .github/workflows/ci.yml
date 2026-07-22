@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push encima de otro cancela el anterior: los minutos son gratis pero no infinitos.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API · lint, pruebas y compilación
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # Instalación en la raíz: es un monorepo con workspaces de npm.
+      - run: npm ci
+      - run: npm run lint --workspace @netflix-clone/api
+      # Las pruebas de la API son unitarias con dobles: no hacen falta ni
+      # Postgres ni Redis, así que el trabajo arranca en segundos.
+      - run: npm run test --workspace @netflix-clone/api
+      - run: npm run build --workspace @netflix-clone/api
+
+  web:
+    name: Front · lint, pruebas y compilación
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint --workspace @netflix-clone/web
+      - run: npm run test --workspace @netflix-clone/web
+      # Compila sin API: las páginas del catálogo son dinámicas y las que se
+      # generan estáticas no consultan nada. Si eso cambiara, esto lo cazaría.
+      - run: npm run build --workspace @netflix-clone/web
