@@ -9,6 +9,8 @@ import {
   seleccionarPerfil,
   useSesion,
 } from '@/lib/sesion';
+import { BotonGoogle } from '@/components/auth/BotonGoogle';
+import { AccesoWhatsApp } from '@/components/auth/AccesoWhatsApp';
 
 export default function Entrar() {
   const sesion = useSesion();
@@ -18,6 +20,7 @@ export default function Entrar() {
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [via, setVia] = useState<'correo' | 'whatsapp'>('correo');
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
@@ -50,7 +53,7 @@ export default function Entrar() {
     return (
       <div className="entrar">
         <div className="panel">
-          <div className="panel-cab">¿QUIÉN ESTÁ VIENDO?</div>
+          <div className="panel-cab">¿Quién está viendo?</div>
           <div className="perfiles">
             {sesion.perfiles.map((p) => (
               <button
@@ -62,7 +65,7 @@ export default function Entrar() {
               >
                 <span className="perfil-avatar">◉</span>
                 <span className="perfil-nombre">{p.nombre}</span>
-                {p.esInfantil && <span className="perfil-kids">KIDS</span>}
+                {p.esInfantil && <span className="perfil-kids">Infantil</span>}
               </button>
             ))}
           </div>
@@ -80,12 +83,12 @@ export default function Entrar() {
     return (
       <div className="entrar">
         <div className="panel">
-          <div className="panel-cab">SESIÓN ACTIVA</div>
+          <div className="panel-cab">Sesión activa</div>
           <p className="panel-txt">
             Perfil <b>{sesion.perfilActivo.nombre}</b> · {sesion.correo}
           </p>
           <Link href="/" className="btn btn-play">
-            ▶ IR AL CATÁLOGO
+            Ir al catálogo
           </Link>
           <Link href="/perfiles" className="link-modo">
             Gestionar perfiles
@@ -99,10 +102,10 @@ export default function Entrar() {
   return (
     <div className="entrar">
       <form className="panel" onSubmit={enviar}>
-        <div className="panel-cab">{modo === 'login' ? 'ENTRAR' : 'CREAR CUENTA'}</div>
+        <div className="panel-cab">{modo === 'login' ? 'Entrar' : 'Crear cuenta'}</div>
 
         <label className="campo">
-          <span>CORREO</span>
+          <span>Correo</span>
           <input
             type="email"
             value={correo}
@@ -113,7 +116,7 @@ export default function Entrar() {
         </label>
 
         <label className="campo">
-          <span>CONTRASEÑA</span>
+          <span>Contraseña</span>
           <input
             type="password"
             value={contrasena}
@@ -127,7 +130,7 @@ export default function Entrar() {
         {error && <div className="form-error">{error}</div>}
 
         <button type="submit" className="btn btn-play" disabled={cargando}>
-          {cargando ? '···' : modo === 'login' ? '▶ ENTRAR' : '＋ CREAR'}
+          {cargando ? 'Un momento…' : modo === 'login' ? 'Entrar' : 'Crear cuenta'}
         </button>
 
         <button
@@ -143,6 +146,26 @@ export default function Entrar() {
             : '¿Ya tienes cuenta? Entrar'}
         </button>
       </form>
+
+      <div className="panel acceso-otros">
+        <div className="acceso-separador">
+          <span>o entra con</span>
+        </div>
+
+        <BotonGoogle alEntrar={() => setError(null)} />
+
+        {via === 'whatsapp' ? (
+          <AccesoWhatsApp alEntrar={() => setError(null)} />
+        ) : (
+          <button
+            type="button"
+            className="btn btn-fantasma"
+            onClick={() => setVia('whatsapp')}
+          >
+            Continuar con WhatsApp
+          </button>
+        )}
+      </div>
     </div>
   );
 }

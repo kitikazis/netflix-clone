@@ -274,6 +274,42 @@ export async function iniciarSesion(correo: string, contrasena: string): Promise
   return guardarSesion(data);
 }
 
+/**
+ * Entra con Google.
+ *
+ * Recibe el ID token que emite Google en el navegador y lo canjea por los
+ * tokens propios. Se hace así, y no con el flujo de redirección, porque el
+ * front y la API viven en dominios distintos: una redirección tendría que
+ * devolver los tokens por la URL y quedarían escritos en el historial.
+ *
+ * La API verifica la firma del ID token contra las claves públicas de Google.
+ * Este lado no valida nada: solo transporta.
+ */
+export async function iniciarSesionConGoogle(idToken: string): Promise<Perfil[]> {
+  const data = await api<RespuestaLogin>('/auth/google', {
+    method: 'POST',
+    body: { idToken },
+  });
+  return guardarSesion(data);
+}
+
+/** Pide que se envíe un código de un solo uso al número indicado. */
+export async function solicitarCodigoWhatsApp(telefono: string): Promise<void> {
+  await api('/auth/whatsapp/solicitar', { method: 'POST', body: { telefono } });
+}
+
+/** Canjea el código recibido por WhatsApp. */
+export async function verificarCodigoWhatsApp(
+  telefono: string,
+  codigo: string,
+): Promise<Perfil[]> {
+  const data = await api<RespuestaLogin>('/auth/whatsapp/verificar', {
+    method: 'POST',
+    body: { telefono, codigo },
+  });
+  return guardarSesion(data);
+}
+
 /** Crea una cuenta (con un perfil por defecto) y deja la sesión iniciada. */
 export async function registrar(correo: string, contrasena: string): Promise<Perfil[]> {
   const data = await api<RespuestaLogin>('/auth/registro', {

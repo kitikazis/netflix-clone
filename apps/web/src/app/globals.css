@@ -668,3 +668,27 @@ a { color: inherit; }
 .pie-tmdb { max-width: 44rem; }
 .pie a { color: var(--tinta-media); text-decoration: underline; text-underline-offset: 2px; }
 .pie a:hover { color: var(--tinta-roja); }
+
+/* ---------- Accesos alternativos (Google, WhatsApp) ---------- */
+.acceso-otros {
+  max-width: 24rem; margin-top: calc(var(--e3) * -1);
+  display: flex; flex-direction: column; gap: var(--e3);
+}
+.acceso-separador {
+  display: flex; align-items: center; gap: var(--e2);
+  font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+  text-transform: uppercase; color: var(--tinta-suave);
+}
+.acceso-separador::before, .acceso-separador::after {
+  content: ''; flex: 1; height: 1px; background: var(--filete);
+}
+.acceso-alterno { display: flex; flex-direction: column; gap: var(--e2); align-items: stretch; }
+.acceso-nota { margin: 0; font-size: var(--t-xs); color: var(--tinta-suave); text-align: center; }
+.acceso-nota code { color: var(--tinta-roja); }
+.acceso-nota b { color: var(--tinta); }
+.acceso-codigo {
+  font-family: var(--display); font-size: var(--t-xl);
+  letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums;
+}
+.acceso-pie { display: flex; justify-content: space-between; gap: var(--e2); flex-wrap: wrap; }
+.acceso-pie .link-modo:disabled { opacity: 0.45; cursor: not-allowed; text-decoration: none; }
