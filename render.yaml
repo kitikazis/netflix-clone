@@ -1,0 +1,89 @@
+# Despliegue de la API en Render (plan free, sin tarjeta).
+#
+# Render construye la imagen con el Dockerfile de apps/api, pero el contexto es
+# la RAÍZ del repo: npm workspaces necesita el package-lock.json de arriba.
+#
+# Los secretos van con `sync: false`: Render los pide en el panel al crear el
+# servicio y NO se guardan en el repo.
+
+services:
+  - type: web
+    name: netflix-clone-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Render inyecta PORT y espera que el proceso escuche ahí. La app ya lee
+      # PORT, así que no hay que fijarlo a mano.
+
+      # --- PostgreSQL (Supabase) ---
+      # IMPORTANTE: aquí va el host del SESSION POOLER, no el de la conexión
+      # directa. La directa (db.<ref>.supabase.co) solo resuelve por IPv6 y
+      # Render no tiene IPv6: la conexión fallaría sin explicar por qué.
+      - key: DATABASE_HOST
+        sync: false
+      - key: DATABASE_PORT
+        value: 5432
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: DATABASE_NAME
+        value: postgres
+      - key: DATABASE_SSL
+        value: true
+
+      # --- Redis (Redis Cloud) ---
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+
+      # --- JWT (genera con: openssl rand -base64 48) ---
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 7d
+
+      # --- CORS ---
+      # El dominio del FRONT en Netlify, no el de esta API. Sin esto la API se
+      # niega a arrancar en producción (ver env.validation).
+      - key: CORS_ORIGINS
+        sync: false
+
+      # --- Almacenamiento ---
+      # El disco de Render free es efímero y se pierde en cada despliegue, así
+      # que `local` no sirve para nada que deba persistir. Con S3 (Supabase
+      # Storage) el contenedor es desechable, que es lo que Render espera.
+      - key: STORAGE_DRIVER
+        value: local
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_PUBLIC_BASE_URL
+        sync: false
+
+      # Transcodificar aquí no es viable (0.1 de CPU y el servicio se duerme a
+      # los 15 minutos, matando el job a medias). Se transcodifica en local y se
+      # sube el HLS ya hecho.
+      - key: MEDIA_TRANSCODE_CONCURRENCY
+        value: 1
