@@ -28,13 +28,13 @@ describe('AutenticacionService', () => {
       buscarPorCorreoConHash: jest.fn(),
       buscarPorId: jest.fn(),
       crear: jest.fn(),
-    } as unknown as Mock<UsuariosService>;
+    };
     perfiles = {
       crear: jest.fn(),
       listarDeUsuario: jest.fn(),
       buscarPropio: jest.fn(),
       eliminar: jest.fn(),
-    } as unknown as Mock<PerfilesService>;
+    };
     tokens = {
       generarPar: jest.fn().mockResolvedValue(parTokens),
       firmarAccess: jest.fn(),
@@ -42,11 +42,11 @@ describe('AutenticacionService', () => {
       esRefreshValido: jest.fn(),
       revocar: jest.fn(),
       revocarTodos: jest.fn(),
-    } as unknown as Mock<TokensService>;
+    };
     hash = {
       hash: jest.fn(),
       comparar: jest.fn(),
-    } as unknown as Mock<HashService>;
+    };
 
     service = new AutenticacionService(
       usuarios as unknown as UsuariosService,
@@ -134,9 +134,7 @@ describe('AutenticacionService', () => {
       tokens.verificarRefresh.mockResolvedValue({ sub: 'u-1', jti: 'viejo', type: 'refresh' });
       tokens.esRefreshValido.mockResolvedValue(false);
 
-      await expect(service.refrescar('refresh.jwt')).rejects.toBeInstanceOf(
-        UnauthorizedException,
-      );
+      await expect(service.refrescar('refresh.jwt')).rejects.toBeInstanceOf(UnauthorizedException);
       expect(tokens.revocarTodos).toHaveBeenCalledWith('u-1');
       expect(tokens.generarPar).not.toHaveBeenCalled();
     });

@@ -22,9 +22,7 @@ describe('generarSlugUnico', () => {
 
   it('añade sufijos incrementales hasta encontrar uno libre', async () => {
     const tomados = new Set(['accion', 'accion-2']);
-    const slug = await generarSlugUnico('Acción', (s) =>
-      Promise.resolve(tomados.has(s)),
-    );
+    const slug = await generarSlugUnico('Acción', (s) => Promise.resolve(tomados.has(s)));
     expect(slug).toBe('accion-3');
   });
 

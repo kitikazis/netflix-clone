@@ -31,11 +31,10 @@ export class AdminTablasController {
     dto: ConsultarUsuariosDto,
   ): Promise<ResultadoPaginado<T>> {
     const [filas, conteo] = await Promise.all([
-      this.dataSource.query<T[]>(`${sql} LIMIT $${parametros.length + 1} OFFSET $${parametros.length + 2}`, [
-        ...parametros,
-        dto.limite,
-        dto.offset,
-      ]),
+      this.dataSource.query<T[]>(
+        `${sql} LIMIT $${parametros.length + 1} OFFSET $${parametros.length + 2}`,
+        [...parametros, dto.limite, dto.offset],
+      ),
       this.dataSource.query<Array<{ total: string }>>(sqlTotal, parametros),
     ]);
     return paginar(filas, Number(conteo[0].total), dto);

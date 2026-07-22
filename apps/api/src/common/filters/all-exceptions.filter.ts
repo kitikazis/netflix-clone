@@ -33,10 +33,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
 
-    const httpStatus =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    // `getStatus()` devuelve un número suelto, no un miembro del enum, así que
+    // se anota el tipo para poder compararlo con `HttpStatus` más abajo.
+    const httpStatus: HttpStatus =
+      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
     let message: string | string[] = 'Internal server error';
     let error = 'InternalServerError';

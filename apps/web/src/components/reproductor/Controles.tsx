@@ -25,12 +25,6 @@ function reloj(segundos: number): string {
   return `${h > 0 ? `${h}:` : ''}${mm}:${String(s).padStart(2, '0')}`;
 }
 
-/** Etiqueta de una variante: "1080p" y, si es la mayor, marcada como máxima. */
-function etiquetaNivel(n: Level, esMaxima: boolean): string {
-  const base = n.height ? `${n.height}p` : `${Math.round(n.bitrate / 1000)} kbps`;
-  return esMaxima ? `${base} · máxima` : base;
-}
-
 /**
  * Controles propios del reproductor.
  *
@@ -195,7 +189,6 @@ export function Controles({
 
   const progreso = duracion > 0 ? (actual / duracion) * 1000 : 0;
   const bufferPct = duracion > 0 ? (cargado / duracion) * 100 : 0;
-  const indiceMaximo = niveles.length - 1;
 
   return (
     <>

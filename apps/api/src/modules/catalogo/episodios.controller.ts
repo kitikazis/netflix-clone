@@ -41,10 +41,7 @@ export class EpisodiosController {
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles(RolUsuario.ADMIN)
   @Post('contenido/:contenidoId/episodios')
-  crear(
-    @Param('contenidoId', ParseUUIDPipe) contenidoId: string,
-    @Body() dto: CrearEpisodioDto,
-  ) {
+  crear(@Param('contenidoId', ParseUUIDPipe) contenidoId: string, @Body() dto: CrearEpisodioDto) {
     return this.episodios.crear(contenidoId, dto);
   }
 
@@ -53,10 +50,7 @@ export class EpisodiosController {
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles(RolUsuario.ADMIN)
   @Patch('episodios/:id')
-  actualizar(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: ActualizarEpisodioDto,
-  ) {
+  actualizar(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ActualizarEpisodioDto) {
     return this.episodios.actualizar(id, dto);
   }
 

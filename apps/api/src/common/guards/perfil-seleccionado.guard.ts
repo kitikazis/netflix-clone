@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { AccessTokenPayload } from '@/common/interfaces/token-payload.interface';
 
@@ -14,9 +9,7 @@ import { AccessTokenPayload } from '@/common/interfaces/token-payload.interface'
 @Injectable()
 export class PerfilSeleccionadoGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context
-      .switchToHttp()
-      .getRequest<Request & { user?: AccessTokenPayload }>();
+    const req = context.switchToHttp().getRequest<Request & { user?: AccessTokenPayload }>();
     if (!req.user?.perfilId) {
       throw new ForbiddenException('Selecciona un perfil antes de continuar');
     }

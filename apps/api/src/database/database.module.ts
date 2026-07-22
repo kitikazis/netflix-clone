@@ -14,10 +14,7 @@ import { appConfig, databaseConfig } from '@/config';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [databaseConfig.KEY, appConfig.KEY],
-      useFactory: (
-        db: ConfigType<typeof databaseConfig>,
-        app: ConfigType<typeof appConfig>,
-      ) => ({
+      useFactory: (db: ConfigType<typeof databaseConfig>, app: ConfigType<typeof appConfig>) => ({
         type: 'postgres',
         host: db.host,
         port: db.port,

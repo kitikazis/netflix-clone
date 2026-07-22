@@ -24,7 +24,11 @@ async function bootstrap(): Promise<void> {
    * Con `trust proxy` en 1 se toma la última IP de X-Forwarded-For, que es la
    * que añade el proxy inmediato y la única en la que se puede confiar.
    */
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  // `getInstance()` devuelve `any`: se acota a lo único que se usa aquí.
+  const express = app.getHttpAdapter().getInstance() as {
+    set(clave: string, valor: unknown): void;
+  };
+  express.set('trust proxy', 1);
 
   // Security headers + CORS. Los orígenes salen de CORS_ORIGINS; en producción
   // son obligatorios (ver env.validation), porque la API responde con

@@ -7,10 +7,7 @@ import { Contenido } from './entities/contenido.entity';
 import { GenerosService } from './generos.service';
 import { CrearContenidoDto } from './dto/crear-contenido.dto';
 import { ActualizarContenidoDto } from './dto/actualizar-contenido.dto';
-import {
-  ConsultarContenidoDto,
-  OrdenContenido,
-} from './dto/consultar-contenido.dto';
+import { ConsultarContenidoDto, OrdenContenido } from './dto/consultar-contenido.dto';
 
 @Injectable()
 export class CatalogoService {
@@ -29,9 +26,7 @@ export class CatalogoService {
     dto: ConsultarContenidoDto,
     soloPublicado: boolean,
   ): Promise<ResultadoPaginado<Contenido>> {
-    const qb = this.repo
-      .createQueryBuilder('c')
-      .leftJoinAndSelect('c.generos', 'g');
+    const qb = this.repo.createQueryBuilder('c').leftJoinAndSelect('c.generos', 'g');
 
     if (soloPublicado) {
       qb.andWhere('c.publicado = true');
@@ -49,12 +44,12 @@ export class CatalogoService {
 
     if (dto.q) {
       // `%` y `_` son comodines de LIKE: sin escaparlos, buscar "100%" devuelve
-      // el catálogo entero.
-      const termino = `%${dto.q.replace(/[\%_]/g, (c) => `\${c}`)}%`;
+      // el catálogo entero. La barra invertida va doble porque dentro de una
+      // plantilla `\$` no escapa nada, solo impide la interpolación: la versión
+      // anterior insertaba el texto literal "${c}" en la consulta.
+      const termino = `%${dto.q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
       qb.andWhere(
-        dto.soloTitulo
-          ? 'c.titulo ILIKE :q'
-          : '(c.titulo ILIKE :q OR c.sinopsis ILIKE :q)',
+        dto.soloTitulo ? 'c.titulo ILIKE :q' : '(c.titulo ILIKE :q OR c.sinopsis ILIKE :q)',
         { q: termino },
       );
     }
@@ -106,9 +101,7 @@ export class CatalogoService {
 
   async crear(dto: CrearContenidoDto): Promise<Contenido> {
     const slug = await this.resolverSlug(dto.slug ?? dto.titulo);
-    const generos = dto.generoIds
-      ? await this.generos.resolverPorIds(dto.generoIds)
-      : [];
+    const generos = dto.generoIds ? await this.generos.resolverPorIds(dto.generoIds) : [];
 
     const contenido = this.repo.create({
       tipo: dto.tipo,

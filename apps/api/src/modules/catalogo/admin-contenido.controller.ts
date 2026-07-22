@@ -53,10 +53,7 @@ export class AdminContenidoController {
 
   @ApiOperation({ summary: 'Actualiza un título' })
   @Patch(':id')
-  actualizar(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: ActualizarContenidoDto,
-  ) {
+  actualizar(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ActualizarContenidoDto) {
     return this.catalogo.actualizar(id, dto);
   }
 

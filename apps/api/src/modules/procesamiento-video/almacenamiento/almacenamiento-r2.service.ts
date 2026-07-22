@@ -13,18 +13,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import {
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { storageConfig } from '@/config';
-import {
-  Almacenamiento,
-  DestinoSubida,
-  OrigenMaterializado,
-} from './almacenamiento';
+import { Almacenamiento, DestinoSubida, OrigenMaterializado } from './almacenamiento';
 import { PREFIJO_ORIGEN, sanitizarNombreArchivo } from './subidas.constants';
 
 /**
@@ -47,7 +39,8 @@ export class AlmacenamientoR2 implements Almacenamiento {
     // R2 como hasta ahora. Así el driver vale para cualquier S3 compatible
     // (Supabase Storage, Backblaze B2, MinIO) sin cambiar el comportamiento
     // existente: con solo las R2_* configuradas apunta a R2 igual que antes.
-    const url = endpoint ?? (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : undefined);
+    const url =
+      endpoint ?? (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : undefined);
 
     if (url && accessKeyId && secretAccessKey) {
       this.client = new S3Client({
@@ -63,9 +56,7 @@ export class AlmacenamientoR2 implements Almacenamiento {
     const { client, bucket } = this.exigirConfigurado();
     let cuerpo: Readable;
     try {
-      const res = await client.send(
-        new GetObjectCommand({ Bucket: bucket, Key: claveOrigen }),
-      );
+      const res = await client.send(new GetObjectCommand({ Bucket: bucket, Key: claveOrigen }));
       if (!res.Body) throw new NotFoundException();
       cuerpo = res.Body as Readable;
     } catch {
@@ -105,10 +96,7 @@ export class AlmacenamientoR2 implements Almacenamiento {
     return `${base}/${clave.replace(/^\/+/, '').replace(/\\/g, '/')}`;
   }
 
-  async prepararSubida(
-    nombreArchivo: string,
-    contentType: string,
-  ): Promise<DestinoSubida> {
+  async prepararSubida(nombreArchivo: string, contentType: string): Promise<DestinoSubida> {
     const { client, bucket } = this.exigirConfigurado();
     const clave = `${PREFIJO_ORIGEN}/${randomUUID()}/${sanitizarNombreArchivo(nombreArchivo)}`;
     const expiraEn = this.config.presignExpiresSeconds;

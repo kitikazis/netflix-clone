@@ -92,13 +92,7 @@ export class TokensService {
     let cursor = '0';
     const patron = `refresh:${usuarioId}:*`;
     do {
-      const [siguiente, claves] = await this.redis.scan(
-        cursor,
-        'MATCH',
-        patron,
-        'COUNT',
-        100,
-      );
+      const [siguiente, claves] = await this.redis.scan(cursor, 'MATCH', patron, 'COUNT', 100);
       cursor = siguiente;
       if (claves.length > 0) {
         await this.redis.del(...claves);

@@ -73,9 +73,7 @@ export class AdminEstadisticasController {
   @ApiOperation({ summary: 'Conteos por tabla y desglose del catálogo' })
   @Get()
   async resumen() {
-    const [fila] = await this.dataSource.query<
-      Array<Record<string, string>>
-    >(`
+    const [fila] = await this.dataSource.query<Array<Record<string, string>>>(`
       SELECT
         (SELECT count(*) FROM usuarios)                                    AS usuarios,
         (SELECT count(*) FROM usuarios WHERE rol = 'ADMIN')                AS administradores,

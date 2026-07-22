@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAccessGuard } from '@/common/guards/jwt-access.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -31,20 +23,14 @@ export class ProcesamientoVideoController {
   @ApiOperation({ summary: 'Encola la transcodificación de una película' })
   @HttpCode(202)
   @Post('contenido/:id')
-  procesarContenido(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: ProcesarVideoDto,
-  ) {
+  procesarContenido(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ProcesarVideoDto) {
     return this.transcod.encolarContenido(id, dto.claveOrigen);
   }
 
   @ApiOperation({ summary: 'Encola la transcodificación de un episodio' })
   @HttpCode(202)
   @Post('episodios/:id')
-  procesarEpisodio(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: ProcesarVideoDto,
-  ) {
+  procesarEpisodio(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ProcesarVideoDto) {
     return this.transcod.encolarEpisodio(id, dto.claveOrigen);
   }
 }

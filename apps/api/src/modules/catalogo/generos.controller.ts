@@ -50,10 +50,7 @@ export class GenerosController {
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles(RolUsuario.ADMIN)
   @Patch(':id')
-  actualizar(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: ActualizarGeneroDto,
-  ) {
+  actualizar(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ActualizarGeneroDto) {
     return this.generos.actualizar(id, dto);
   }
 

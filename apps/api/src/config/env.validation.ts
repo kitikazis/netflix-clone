@@ -186,9 +186,7 @@ export function validate(config: Record<string, unknown>): EnvironmentVariables 
   });
 
   if (errors.length > 0) {
-    const details = errors
-      .map((e) => Object.values(e.constraints ?? {}).join(', '))
-      .join('\n  - ');
+    const details = errors.map((e) => Object.values(e.constraints ?? {}).join(', ')).join('\n  - ');
     throw new Error(`Environment validation failed:\n  - ${details}`);
   }
 

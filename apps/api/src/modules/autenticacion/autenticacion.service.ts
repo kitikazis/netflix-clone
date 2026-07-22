@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsuariosService } from '@/modules/usuarios/usuarios.service';
 import { PerfilesService } from '@/modules/usuarios/perfiles.service';
 import { Usuario } from '@/modules/usuarios/entities/usuario.entity';
@@ -110,12 +106,7 @@ export class AutenticacionService {
     return { mensaje: 'Sesión cerrada' };
   }
 
-  async seleccionarPerfil(
-    usuarioId: string,
-    correo: string,
-    rol: RolUsuario,
-    perfilId: string,
-  ) {
+  async seleccionarPerfil(usuarioId: string, correo: string, rol: RolUsuario, perfilId: string) {
     const perfil = await this.perfiles.buscarPropio(usuarioId, perfilId);
     const accessToken = await this.tokens.firmarAccess({
       sub: usuarioId,

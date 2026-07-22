@@ -8,9 +8,7 @@ export class AgregarRolUsuario1784800000000 implements MigrationInterface {
   name = 'AgregarRolUsuario1784800000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `CREATE TYPE "public"."rol_usuario" AS ENUM('USUARIO', 'ADMIN')`,
-    );
+    await queryRunner.query(`CREATE TYPE "public"."rol_usuario" AS ENUM('USUARIO', 'ADMIN')`);
     await queryRunner.query(
       `ALTER TABLE "usuarios" ADD "rol" "public"."rol_usuario" NOT NULL DEFAULT 'USUARIO'`,
     );

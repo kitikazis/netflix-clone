@@ -40,11 +40,7 @@ export interface ResultadoPaginado<T> {
 }
 
 /** Envuelve un `[datos, total]` (p. ej. de getManyAndCount) en la forma paginada. */
-export function paginar<T>(
-  datos: T[],
-  total: number,
-  dto: PaginacionDto,
-): ResultadoPaginado<T> {
+export function paginar<T>(datos: T[], total: number, dto: PaginacionDto): ResultadoPaginado<T> {
   return {
     datos,
     paginacion: {

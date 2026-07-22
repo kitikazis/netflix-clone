@@ -17,7 +17,9 @@ export class RedisHealthIndicator {
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     const indicator = this.healthIndicatorService.check(key);
     try {
-      const pong = await this.redis.ping();
+      // El tipo de `ping()` es la constante 'PONG', así que cualquier otra cosa
+      // queda como `never` y no se puede interpolar: basta con decir que falló.
+      const pong: string = await this.redis.ping();
       if (pong !== 'PONG') {
         return indicator.down({ message: `Unexpected PING response: ${pong}` });
       }

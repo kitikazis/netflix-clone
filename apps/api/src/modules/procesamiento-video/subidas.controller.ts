@@ -32,9 +32,7 @@ import { FirmarSubidaDto } from './dto/firmar-subida.dto';
 @Roles(RolUsuario.ADMIN)
 @Controller('admin/subidas')
 export class SubidasController {
-  constructor(
-    @Inject(ALMACENAMIENTO) private readonly almacenamiento: Almacenamiento,
-  ) {}
+  constructor(@Inject(ALMACENAMIENTO) private readonly almacenamiento: Almacenamiento) {}
 
   @ApiOperation({ summary: 'Prepara la subida de un vídeo fuente (URL de destino)' })
   @Post('firmar')

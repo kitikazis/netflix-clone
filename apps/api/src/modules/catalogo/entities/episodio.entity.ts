@@ -7,11 +7,7 @@ import { Contenido } from './contenido.entity';
  * Episodio de una serie. Único por (contenido, temporada, número).
  */
 @Entity('episodios')
-@Unique('uq_episodio_contenido_temporada_numero', [
-  'contenidoId',
-  'temporada',
-  'numeroEpisodio',
-])
+@Unique('uq_episodio_contenido_temporada_numero', ['contenidoId', 'temporada', 'numeroEpisodio'])
 export class Episodio extends EntidadBase {
   @Index()
   @Column({ type: 'uuid' })

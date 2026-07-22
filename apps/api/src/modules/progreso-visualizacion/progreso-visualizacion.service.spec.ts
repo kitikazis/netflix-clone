@@ -31,8 +31,8 @@ describe('ProgresoVisualizacionService', () => {
     repo = {
       find: jest.fn().mockResolvedValue([]),
       findOne: jest.fn().mockResolvedValue(null),
-      save: jest.fn().mockImplementation((x) => Promise.resolve(x)),
-      create: jest.fn().mockImplementation((x) => x),
+      save: jest.fn().mockImplementation((x: unknown) => Promise.resolve(x)),
+      create: jest.fn().mockImplementation((x: unknown) => x),
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
     contenidoRepo = { exists: jest.fn().mockResolvedValue(true) };
@@ -60,12 +60,7 @@ describe('ProgresoVisualizacionService', () => {
         duracionTotal: 600,
       });
 
-      const [clave, valor, modo, ttl] = redis.set.mock.calls[0] as [
-        string,
-        string,
-        string,
-        number,
-      ];
+      const [clave, valor, modo, ttl] = redis.set.mock.calls[0] as [string, string, string, number];
       expect(clave).toBe(`pv:${PERFIL}:${CONTENIDO}:_`);
       expect(JSON.parse(valor)).toEqual({ s: 30, d: 600, c: false });
       expect(modo).toBe('EX');
@@ -188,16 +183,14 @@ describe('ProgresoVisualizacionService', () => {
       const items = await service.continuarViendo(PERFIL, 2);
 
       // Pide el triple para tener margen tras descartar los completados.
-      expect((repo.find.mock.calls[0][0] as { take: number }).take).toBe(6);
+      const llamadas = repo.find.mock.calls as [{ take: number }][];
+      expect(llamadas[0][0].take).toBe(6);
       expect(items).toHaveLength(2);
     });
 
     it('descarta los que Redis marca completados aunque Postgres no lo sepa', async () => {
       repo.find.mockResolvedValue([fila('a', 10), fila('b', 20)]);
-      redis.mget.mockResolvedValue([
-        JSON.stringify({ s: 590, d: 600, c: true }),
-        null,
-      ]);
+      redis.mget.mockResolvedValue([JSON.stringify({ s: 590, d: 600, c: true }), null]);
 
       const items = await service.continuarViendo(PERFIL, 10);
       expect(items).toHaveLength(1);

@@ -1,11 +1,4 @@
-import {
-  Column,
-  Entity,
-  Index,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-} from 'typeorm';
+import { Column, Entity, Index, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 import { EntidadBase } from '@/common/entities/entidad-base';
 import { TipoContenido } from '../enums/tipo-contenido.enum';
 import { EstadoProcesamiento } from '../enums/estado-procesamiento.enum';

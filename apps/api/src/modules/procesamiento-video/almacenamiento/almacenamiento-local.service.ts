@@ -4,19 +4,10 @@ import { access, cp, mkdir } from 'node:fs/promises';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { mediaConfig } from '@/config';
-import {
-  Almacenamiento,
-  DestinoSubida,
-  OrigenMaterializado,
-} from './almacenamiento';
+import { Almacenamiento, DestinoSubida, OrigenMaterializado } from './almacenamiento';
 import { RUTA_SUBIDA_DIRECTA, sanitizarNombreArchivo } from './subidas.constants';
 
 /**

@@ -21,10 +21,7 @@ export class EpisodiosService {
     private readonly contenidoRepo: Repository<Contenido>,
   ) {}
 
-  async listarDeContenido(
-    contenidoId: string,
-    soloPublicada = false,
-  ): Promise<Episodio[]> {
+  async listarDeContenido(contenidoId: string, soloPublicada = false): Promise<Episodio[]> {
     await this.exigirSerie(contenidoId, soloPublicada);
     return this.repo.find({
       where: { contenidoId },
@@ -63,12 +60,7 @@ export class EpisodiosService {
     const cambiaClave =
       nuevaTemporada !== episodio.temporada || nuevoNumero !== episodio.numeroEpisodio;
     if (cambiaClave) {
-      await this.exigirCombinacionLibre(
-        episodio.contenidoId,
-        nuevaTemporada,
-        nuevoNumero,
-        id,
-      );
+      await this.exigirCombinacionLibre(episodio.contenidoId, nuevaTemporada, nuevoNumero, id);
     }
 
     if (dto.temporada !== undefined) episodio.temporada = dto.temporada;
@@ -86,10 +78,7 @@ export class EpisodiosService {
   }
 
   /** Carga el contenido y verifica que exista y sea una serie. */
-  private async exigirSerie(
-    contenidoId: string,
-    soloPublicada = false,
-  ): Promise<Contenido> {
+  private async exigirSerie(contenidoId: string, soloPublicada = false): Promise<Contenido> {
     const contenido = await this.contenidoRepo.findOne({ where: { id: contenidoId } });
     // En contexto público, una serie no publicada no debe revelar su existencia.
     if (!contenido || (soloPublicada && !contenido.publicado)) {

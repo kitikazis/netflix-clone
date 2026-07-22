@@ -1,15 +1,7 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  paginar,
-  PaginacionDto,
-  ResultadoPaginado,
-} from '@/common/dto/paginacion.dto';
+import { paginar, PaginacionDto, ResultadoPaginado } from '@/common/dto/paginacion.dto';
 import { Usuario } from './entities/usuario.entity';
 import { Perfil } from './entities/perfil.entity';
 import { RolUsuario } from './enums/rol-usuario.enum';
@@ -41,10 +33,7 @@ export class AdminUsuariosService {
    * aquí ni por descuido: para obtenerlo hace falta pedirlo a mano con
    * addSelect, cosa que solo hace el login.
    */
-  async listar(
-    dto: PaginacionDto,
-    q?: string,
-  ): Promise<ResultadoPaginado<UsuarioAdmin>> {
+  async listar(dto: PaginacionDto, q?: string): Promise<ResultadoPaginado<UsuarioAdmin>> {
     const qb = this.repo
       .createQueryBuilder('u')
       .loadRelationCountAndMap('u.numPerfiles', 'u.perfiles')

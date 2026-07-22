@@ -6,10 +6,7 @@ import { UsuariosService } from './usuarios.service';
 import { PerfilesService } from './perfiles.service';
 import { PerfilesController } from './perfiles.controller';
 import { AdminUsuariosService } from './admin-usuarios.service';
-import {
-  AdminEstadisticasController,
-  AdminUsuariosController,
-} from './admin-usuarios.controller';
+import { AdminEstadisticasController, AdminUsuariosController } from './admin-usuarios.controller';
 import { AdminTablasController } from './admin-tablas.controller';
 
 /**

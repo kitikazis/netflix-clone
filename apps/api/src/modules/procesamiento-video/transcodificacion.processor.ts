@@ -8,10 +8,7 @@ import { mediaConfig } from '@/config';
 import { TranscodificacionService } from './transcodificacion.service';
 import { FfmpegService } from './ffmpeg.service';
 import { ALMACENAMIENTO, Almacenamiento } from './almacenamiento/almacenamiento';
-import {
-  COLA_TRANSCODIFICACION,
-  DatosJobTranscodificacion,
-} from './transcodificacion.constants';
+import { COLA_TRANSCODIFICACION, DatosJobTranscodificacion } from './transcodificacion.constants';
 
 /**
  * Worker BullMQ que ejecuta la transcodificación ffmpeg → HLS de un job:
@@ -20,10 +17,7 @@ import {
  * relanzan para que BullMQ reintente según la política del job.
  */
 @Processor(COLA_TRANSCODIFICACION)
-export class TranscodificacionProcessor
-  extends WorkerHost
-  implements OnApplicationBootstrap
-{
+export class TranscodificacionProcessor extends WorkerHost implements OnApplicationBootstrap {
   private readonly logger = new Logger(TranscodificacionProcessor.name);
   private readonly workDir: string;
 
