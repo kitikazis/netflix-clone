@@ -80,8 +80,8 @@ npm run migration:show
 4. ✅ Catalog API (CRUD + search + pagination) — lecturas públicas + gestión admin (rol `ADMIN`)
 5. ✅ Video pipeline (BullMQ + ffmpeg → HLS multi-bitrate; almacenamiento local, R2-ready)
 6. ✅ Upload + Cloudflare R2 storage (subidas prefirmadas; driver `local`/`r2` seleccionable)
-7. ⬜ Next.js frontend (SSR catalog + HLS.js player)
-8. ⬜ Continue watching + history (Redis)
+7. ✅ Next.js frontend (SSR catalog + ficha + reproductor HLS.js) — estética VHS
+8. ✅ Continue watching + history (Redis hot state + Postgres durable)
 
 ## Catálogo & vídeo (Fases 4–5)
 
@@ -139,3 +139,54 @@ elige con `STORAGE_DRIVER`:
 > **R2 en prod:** habilita el acceso público del bucket (subdominio `r2.dev` o dominio
 > propio) para servir el HLS, y configura **CORS** en el bucket si subes desde el navegador
 > con la URL prefirmada.
+
+## Frontend & continuar viendo (Fases 7–8)
+
+**Frontend** (`apps/web`, Next.js App Router, estética VHS/videoclub):
+
+- `/` — catálogo con **SSR** (héroe + rejilla + fila "continuar viendo" + filas por género).
+- `/buscar` — búsqueda SSR con filtros de tipo, género y orden, y paginación. Todo el
+  estado va en la URL, así que un resultado es enlazable.
+- `/titulo/[slug]` — ficha SSR (sinopsis, géneros, episodios si es serie).
+- `/ver/[slug]` (y `?episodio=<id>`) — **reproductor HLS.js**: reanudación, latidos de
+  progreso, selector de calidad, encadenado con el episodio siguiente y atajos de
+  teclado (espacio, ←/→, F, M).
+- `/entrar` — login/registro + selección de perfil.
+- `/perfiles` — gestión de perfiles de la cuenta (crear, borrar, cambiar).
+- `error.tsx` / `not-found.tsx` / `loading.tsx` para los estados de fallo y carga.
+
+**Sesión.** Los tokens viven en `localStorage`. La capa de sesión (`lib/sesion.ts`)
+refresca el access token automáticamente ante un 401 y reintenta la petición; el
+refresco es de un solo vuelo (compartido), porque la API **rota** el refresh token en
+cada uso y dos rotaciones en paralelo se leerían como reuso y tumbarían la sesión.
+Al refrescar con un perfil activo se vuelve a emitir el token **con perfil**, que es el
+que exigen los endpoints de progreso.
+
+> Nota: `localStorage` deja los tokens expuestos a XSS. Es la opción simple para un
+> proyecto de práctica; en producción irían en cookies `httpOnly`.
+
+Config del front (`apps/web/.env.local`, opcional):
+
+```bash
+API_URL=http://localhost:3000/api/v1          # SSR (server → API)
+NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1  # navegador → API (y origen del HLS local)
+```
+
+**Continuar viendo** (Fase 8, API `/api/v1/continuar-viendo`, requiere token con perfil):
+
+- `PUT /continuar-viendo` — latido `{ contenidoId, episodioId?, segundoActual, duracionTotal }`.
+  Escribe el estado **caliente en Redis** siempre; persiste en **Postgres** de forma
+  diferida (throttle ~15 s, o al completar). Marca `completado` al ~90 %.
+- `GET /continuar-viendo` — títulos empezados y no completados, posición fresca de Redis.
+- `GET /continuar-viendo/posicion?contenidoId=&episodioId=` — punto de reanudación de
+  **un** título. A diferencia del listado, incluye los completados: al revisar algo ya
+  terminado el reproductor necesita saberlo para ofrecer empezar de nuevo.
+- `GET /continuar-viendo/historial` · `DELETE /continuar-viendo/:contenidoId`.
+
+### Flujo de extremo a extremo
+
+```
+registro/login (/entrar) → elegir perfil → catálogo (/) → ficha → ▶ ver
+   → el reproductor reanuda desde tu posición y guarda el progreso
+   → "continuar viendo" aparece en la home
+```
