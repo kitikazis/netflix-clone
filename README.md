@@ -251,6 +251,35 @@ un servicio externo sin tocar código:
 > configurable existe para cuando R2 no es viable (por ejemplo, si no quieres
 > registrar una tarjeta), no porque haya dejado de ser lo recomendable.
 
+#### Supabase Postgres: qué conexión usar
+
+Supabase ofrece tres, y la elección no es indiferente:
+
+| Conexión | Puerto | Sirve |
+| --- | --- | --- |
+| Directa (`db.<ref>.supabase.co`) | 5432 | Sí, **si tu red tiene IPv6** |
+| Pooler en modo *session* | 5432 | **Sí — la opción segura** |
+| Pooler en modo *transaction* | 6543 | **No** |
+
+La directa resuelve solo por IPv6 en los proyectos nuevos, y muchos hosts (Render
+free entre ellos) no lo tienen: la conexión falla sin explicar por qué. El pooler
+va por IPv4 y evita el problema.
+
+El de *transaction* hay que descartarlo: no mantiene el estado de sesión y rompe
+las *prepared statements*, que es justo lo que usa el driver `pg` de TypeORM.
+
+Con Supabase el usuario es `postgres` (o `postgres.<ref>` en el pooler) y la base
+se llama `postgres`, no `netflix_clone`.
+
+**Crear el esquema**, desde tu máquina apuntando a Supabase:
+
+```bash
+cd apps/api
+DATABASE_SSL=true DATABASE_HOST=... DATABASE_PORT=5432 \
+DATABASE_USER=postgres.<ref> DATABASE_PASSWORD=... DATABASE_NAME=postgres \
+npm run migration:run
+```
+
 ### Desplegar el front fuera de Docker
 
 `output: 'standalone'` solo se activa con `BUILD_DOCKER=1`, que pone el Dockerfile.
