@@ -34,9 +34,28 @@ interface FilaGenero {
   items: Contenido[];
 }
 
-/** Filas por género, ya filtradas de las que no tienen nada publicado. */
-async function cargarFilasGenero(): Promise<FilaGenero[]> {
-  const generos = (await getGeneros()).slice(0, MAX_FILAS_GENERO);
+/**
+ * Filas por género.
+ *
+ * Los géneros se eligen a partir de los títulos más recientes, no por orden
+ * alfabético: así la portada enseña dónde hay novedades en vez de empezar
+ * siempre por la primera letra del abecedario, que no le dice nada a nadie.
+ *
+ * Además no cuesta ninguna consulta extra — se reutiliza el listado que ya se
+ * ha pedido para la rejilla principal.
+ */
+async function cargarFilasGenero(recientes: Contenido[]): Promise<FilaGenero[]> {
+  const porNovedad: Genero[] = [];
+  for (const item of recientes) {
+    for (const g of item.generos ?? []) {
+      if (!porNovedad.some((x) => x.id === g.id)) porNovedad.push(g);
+    }
+  }
+
+  // Si los recientes no traen géneros (catálogo vacío), se cae al listado.
+  const generos = (
+    porNovedad.length > 0 ? porNovedad : await getGeneros()
+  ).slice(0, MAX_FILAS_GENERO);
   if (generos.length === 0) return [];
 
   const filas = await Promise.all(
@@ -49,10 +68,8 @@ async function cargarFilasGenero(): Promise<FilaGenero[]> {
 }
 
 export default async function Home() {
-  const [{ items, error }, filasGenero] = await Promise.all([
-    cargarCatalogo(),
-    cargarFilasGenero(),
-  ]);
+  const { items, error } = await cargarCatalogo();
+  const filasGenero = await cargarFilasGenero(items);
   const destacado = items.find((c) => c.destacado) ?? items[0];
 
   return (
