@@ -1,7 +1,7 @@
 'use client';
 
 import { peticionCuenta } from './sesion';
-import type { Contenido, Genero, Pagina, TipoContenido } from './tipos';
+import type { Contenido, Episodio, Genero, Pagina, TipoContenido } from './tipos';
 
 /**
  * Operaciones de administración del catálogo.
@@ -69,6 +69,52 @@ export function actualizarContenido(
 
 export function eliminarContenido(id: string): Promise<void> {
   return peticionCuenta<void>(`/admin/catalogo/contenido/${id}`, { method: 'DELETE' });
+}
+
+// ---------------------------------------------------------------------------
+// Episodios de una serie
+// ---------------------------------------------------------------------------
+
+export interface DatosEpisodio {
+  temporada: number;
+  numeroEpisodio: number;
+  titulo: string;
+  sinopsis?: string | null;
+  duracionMinutos?: number | null;
+}
+
+/**
+ * Episodios de una serie, ordenados por la propia API.
+ *
+ * Va por la ruta de administración porque la pública oculta las series en
+ * borrador, que son precisamente las que se están montando desde el panel.
+ */
+export function listarEpisodios(contenidoId: string): Promise<Episodio[]> {
+  return peticionCuenta<Episodio[]>(`/admin/catalogo/contenido/${contenidoId}/episodios`);
+}
+
+export function crearEpisodio(
+  contenidoId: string,
+  datos: DatosEpisodio,
+): Promise<Episodio> {
+  return peticionCuenta<Episodio>(`/catalogo/contenido/${contenidoId}/episodios`, {
+    method: 'POST',
+    body: limpiar(datos),
+  });
+}
+
+export function actualizarEpisodio(
+  id: string,
+  datos: Partial<DatosEpisodio>,
+): Promise<Episodio> {
+  return peticionCuenta<Episodio>(`/catalogo/episodios/${id}`, {
+    method: 'PATCH',
+    body: limpiar(datos),
+  });
+}
+
+export function eliminarEpisodio(id: string): Promise<void> {
+  return peticionCuenta<void>(`/catalogo/episodios/${id}`, { method: 'DELETE' });
 }
 
 export function listarGeneros(): Promise<Genero[]> {

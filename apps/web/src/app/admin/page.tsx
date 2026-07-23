@@ -11,6 +11,8 @@ import {
 } from '@/lib/admin';
 import type { Contenido, Genero, Paginacion } from '@/lib/tipos';
 import { FormularioContenido } from '@/components/admin/FormularioContenido';
+import { EditorEpisodios } from '@/components/admin/EditorEpisodios';
+import { SubirVideo } from '@/components/admin/SubirVideo';
 import { PanelUsuarios } from '@/components/admin/PanelUsuarios';
 import { PanelResumen } from '@/components/admin/PanelResumen';
 import {
@@ -57,6 +59,8 @@ export default function Admin() {
 
   const [editando, setEditando] = useState<Contenido | null>(null);
   const [creando, setCreando] = useState(false);
+  const [episodiosDe, setEpisodiosDe] = useState<Contenido | null>(null);
+  const [subiendo, setSubiendo] = useState<Contenido | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [borrando, setBorrando] = useState<string | null>(null);
@@ -142,6 +146,21 @@ export default function Admin() {
     );
   }
 
+  // --- Episodios de una serie ---
+  if (episodiosDe) {
+    return (
+      <div className="catalogo">
+        <EditorEpisodios
+          serie={episodiosDe}
+          alCerrar={() => {
+            setEpisodiosDe(null);
+            void cargar();
+          }}
+        />
+      </div>
+    );
+  }
+
   // --- Formulario ---
   if (creando || editando) {
     return (
@@ -204,7 +223,10 @@ export default function Admin() {
               value={consulta}
               onChange={(e) => setConsulta(e.target.value)}
               placeholder="Buscar por título…"
-              aria-label="Buscar en el catálogo"
+              // El buscador de la cabecera está en la misma página y llevaba
+              // esta misma etiqueta: dos controles distintos con el mismo
+              // nombre accesible son indistinguibles con un lector de pantalla.
+              aria-label="Filtrar títulos del panel"
             />
           </form>
 
@@ -226,6 +248,16 @@ export default function Admin() {
         </div>
 
         {error && <div className="form-error">{error}</div>}
+
+        {subiendo && (
+          <SubirVideo
+            destino={{ tipo: 'contenido', id: subiendo.id }}
+            nombre={subiendo.titulo}
+            estadoActual={subiendo.estadoProcesamiento}
+            alTerminar={() => void cargar()}
+            alCerrar={() => setSubiendo(null)}
+          />
+        )}
 
         {cargando && items.length === 0 ? (
           <div className="vacio">Cargando…</div>
@@ -262,6 +294,25 @@ export default function Admin() {
                     </td>
                     <td className="admin-estado">{c.estadoProcesamiento}</td>
                     <td className="admin-acciones">
+                      {/* En una serie el vídeo cuelga de cada episodio, no del
+                          título: subirlo aquí no tendría dónde reproducirse. */}
+                      {c.tipo === 'SERIE' ? (
+                        <button
+                          type="button"
+                          className="barra-btn"
+                          onClick={() => setEpisodiosDe(c)}
+                        >
+                          Episodios
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="barra-btn"
+                          onClick={() => setSubiendo(c)}
+                        >
+                          {c.hlsPlaylistUrl ? 'Reemplazar vídeo' : 'Subir vídeo'}
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="barra-btn"

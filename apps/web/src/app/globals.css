@@ -655,6 +655,54 @@ a { color: inherit; }
 }
 .admin-form-acciones { display: flex; gap: var(--e3); align-items: center; }
 
+/* ---------- Episodios ---------- */
+.admin-episodios { display: flex; flex-direction: column; gap: var(--e4); }
+.admin-episodios .admin-barra .subida-titulo { margin-inline: auto; }
+.admin-temporada { display: flex; flex-direction: column; gap: var(--e2); }
+.admin-temporada-cab {
+  font-family: var(--display); font-size: var(--t-lg); margin: 0;
+}
+
+/* ---------- Subida de vídeo ----------
+   Recuadro con doble filete: cuelga de la fila sobre la que se actúa y
+   conviene que se lea como una hoja aparte, no como otra sección más. */
+.subida {
+  display: flex; flex-direction: column; gap: var(--e3);
+  border: 1px solid var(--filete-fuerte); background: var(--papel-alto);
+  padding: var(--e3); max-width: 44rem;
+}
+.subida-cab {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--e2);
+  padding-bottom: var(--e1); border-bottom: 1px solid var(--filete);
+}
+.subida-titulo { font-family: var(--display); font-size: var(--t-md); }
+.subida-caja {
+  display: flex; align-items: center; justify-content: center; gap: var(--e2);
+  border: 1px dashed var(--filete); padding: var(--e4) var(--e3); cursor: pointer;
+  font-size: var(--t-sm); color: var(--tinta-media); text-align: center;
+  transition: border-color var(--transicion), color var(--transicion);
+}
+.subida-caja:hover { border-color: var(--tinta); color: var(--tinta); }
+/* El control nativo se oculta pero sigue enfocable: el botón del navegador
+   viene rotulado en su propio idioma y desentona con el resto de la hoja. */
+.subida-caja input {
+  position: absolute; width: 1px; height: 1px;
+  clip-path: inset(50%); overflow: hidden;
+}
+.subida-caja:has(input:focus-visible) { outline: 2px solid var(--tinta); outline-offset: 2px; }
+.subida-progreso { display: flex; align-items: center; gap: var(--e2); }
+.subida-barra {
+  flex: 1; height: 2px; background: var(--papel-hueco);
+}
+/* Sin transición: la barra debe ir al ritmo real de los bytes, y suavizarla
+   la haría avanzar cuando ya no se está subiendo nada. */
+.subida-barra span { display: block; height: 100%; background: var(--tinta-roja); }
+.subida-pct {
+  font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+  color: var(--tinta-suave); font-variant-numeric: tabular-nums; min-width: 5.5rem;
+  text-align: right;
+}
+
 /* ============================================================
    PIE
    ============================================================ */
