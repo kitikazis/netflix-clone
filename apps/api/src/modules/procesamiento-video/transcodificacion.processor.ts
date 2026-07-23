@@ -4,7 +4,7 @@ import { Inject, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { mediaConfig } from '@/config';
+import { mediaConfig, storageConfig } from '@/config';
 import { TranscodificacionService } from './transcodificacion.service';
 import { FfmpegService } from './ffmpeg.service';
 import { ALMACENAMIENTO, Almacenamiento } from './almacenamiento/almacenamiento';
@@ -26,6 +26,7 @@ export class TranscodificacionProcessor extends WorkerHost implements OnApplicat
     private readonly ffmpeg: FfmpegService,
     @Inject(ALMACENAMIENTO) private readonly almacenamiento: Almacenamiento,
     @Inject(mediaConfig.KEY) private readonly config: ConfigType<typeof mediaConfig>,
+    @Inject(storageConfig.KEY) private readonly storage: ConfigType<typeof storageConfig>,
   ) {
     super();
     this.workDir = resolve(config.workDir);
@@ -40,7 +41,26 @@ export class TranscodificacionProcessor extends WorkerHost implements OnApplicat
   }
 
   async process(job: Job<DatosJobTranscodificacion>) {
-    const { tipo, activoId, claveOrigen } = job.data;
+    const { tipo, activoId, claveOrigen, almacenamiento } = job.data;
+
+    /**
+     * No tocar un trabajo destinado a otro almacenamiento.
+     *
+     * La cola vive en un Redis compartido, así que todas las instancias
+     * conectadas compiten por los mismos trabajos: la de desarrollo y la
+     * desplegada. Si están configuradas distinto, la que gane escribe el vídeo
+     * donde ella guarda y el título acaba apuntando a un disco que nadie más
+     * ve. Sin este control no daba ni un error —el estado llegaba a LISTO— y
+     * costó una noche entera descubrirlo.
+     */
+    if (almacenamiento && almacenamiento !== this.storage.driver) {
+      throw new Error(
+        `Este trabajo se encoló para almacenamiento "${almacenamiento}" y esta ` +
+          `instancia usa "${this.storage.driver}". Revisa STORAGE_DRIVER: las ` +
+          `instancias que comparten Redis tienen que guardar en el mismo sitio.`,
+      );
+    }
+
     this.logger.log(`Iniciando job ${job.id}: ${tipo} ${activoId} ← ${claveOrigen}`);
 
     await this.transcod.iniciar(tipo, activoId);

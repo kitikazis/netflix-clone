@@ -146,16 +146,33 @@ Para pasar un bucket con la estructura antigua hay un script de una sola vez:
 Copia, comprueba, reapunta la base y solo entonces borra: si se corta a mitad,
 lo peor que queda son objetos duplicados, nunca un título sin su vídeo.
 
-> **El vídeo se sube pero no aparece en el bucket.** Casi siempre es que la API
-> arrancó sin `STORAGE_DRIVER`, cuyo valor por defecto es `local`: los vídeos se
-> quedan en el disco de la máquina que la ejecuta aunque la base de datos esté en
-> la nube. El título llega a LISTO, la fila apunta a una ruta `/media/...` que
+> **El vídeo se sube pero no aparece en el bucket.** Dos causas, y la segunda es
+> traicionera.
+>
+> La primera: la API arrancó sin `STORAGE_DRIVER`, cuyo valor por defecto es
+> `local`; los vídeos se quedan en el disco de la máquina que la ejecuta aunque
+> la base de datos esté en la nube. El título llega a LISTO, la fila apunta a una ruta `/media/...` que
 > solo existe ahí, y en el bucket no hay nada. Al arrancar se dice cuál está
 > activo, así que basta con mirar la primera línea del log:
 >
 > ```
 > LOG  [Almacenamiento] Vídeos en almacenamiento externo (bucket "media")
 > WARN [Almacenamiento] STORAGE_DRIVER=local: los vídeos se guardan en el disco…
+> ```
+>
+> La segunda: **la cola de BullMQ vive en un Redis compartido**, así que todas
+> las instancias conectadas compiten por los mismos trabajos — la de desarrollo
+> y la desplegada. Si una tiene `STORAGE_DRIVER=r2` y la otra no, el vídeo se
+> sube a un sitio y lo convierte la instancia equivocada, que lo escribe en su
+> propio disco. El título llega a LISTO apuntando a `/media/...` y en el bucket
+> no hay nada. Para que no vuelva a pasar en silencio, cada trabajo viaja con el
+> almacenamiento para el que se encoló y un worker que use otro lo rechaza con
+> un mensaje explícito en vez de procesarlo.
+>
+> Comprobar quién está conectado a la cola:
+>
+> ```bash
+> node -e "const R=require('ioredis');const r=new R({host:process.env.REDIS_HOST,> port:+process.env.REDIS_PORT,password:process.env.REDIS_PASSWORD,tls:{}});> r.client('LIST').then(l=>console.log(l)).finally(()=>r.disconnect())"
 > ```
 
 **Flujo de subida (ambos drivers, mismo contrato):**

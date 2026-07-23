@@ -6,7 +6,9 @@ import {
   NotFoundException,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
+import { storageConfig } from '@/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { In, Repository } from 'typeorm';
@@ -52,6 +54,8 @@ export class TranscodificacionService implements OnApplicationBootstrap {
     @Inject(ALMACENAMIENTO)
     private readonly almacenamiento: Almacenamiento,
     private readonly subidas: SubidasService,
+    @Inject(storageConfig.KEY)
+    private readonly config: ConfigType<typeof storageConfig>,
   ) {}
 
   /**
@@ -235,7 +239,7 @@ export class TranscodificacionService implements OnApplicationBootstrap {
 
     const job = await this.cola.add(
       JOB_TRANSCODIFICAR,
-      { tipo, activoId, claveOrigen },
+      { tipo, activoId, claveOrigen, almacenamiento: this.config.driver },
       {
         attempts: 3,
         backoff: { type: 'exponential', delay: 5000 },
