@@ -8,7 +8,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import { ConfigType } from '@nestjs/config';
 import { mediaConfig } from '@/config';
 import { Almacenamiento, DestinoSubida, OrigenMaterializado } from './almacenamiento';
-import { RUTA_SUBIDA_DIRECTA, sanitizarNombreArchivo } from './subidas.constants';
+import { RUTA_SUBIDA_DIRECTA, construirClaveOrigen } from './subidas.constants';
 
 /**
  * Implementación de {@link Almacenamiento} sobre disco local.
@@ -52,7 +52,7 @@ export class AlmacenamientoLocal implements Almacenamiento {
   }
 
   prepararSubida(nombreArchivo: string, _contentType: string): Promise<DestinoSubida> {
-    const clave = `origen/${randomUUID()}/${sanitizarNombreArchivo(nombreArchivo)}`;
+    const clave = construirClaveOrigen(nombreArchivo, randomUUID());
     return Promise.resolve({
       clave,
       url: `${RUTA_SUBIDA_DIRECTA}?clave=${encodeURIComponent(clave)}`,

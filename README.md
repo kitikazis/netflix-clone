@@ -127,6 +127,25 @@ elige con `STORAGE_DRIVER`:
 - **`r2`**: Cloudflare R2 vía API S3 (`@aws-sdk/client-s3`). Requiere `R2_ACCOUNT_ID`,
   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` y `R2_PUBLIC_BASE_URL`.
 
+**Cómo se organiza dentro**, con cualquiera de los dos drivers:
+
+```
+origen/2026-07-23/mi-pelicula-a1b2c3d4.mp4   ← lo que se sube, tal cual
+hls/mi-pelicula/master.m3u8                  ← lo que se reproduce
+hls/mi-serie/t1e2/master.m3u8                ← los episodios, bajo su serie
+```
+
+El HLS colgaba antes de una carpeta con el UUID del título. Era correcto pero
+ilegible: al abrir el bucket no había forma de saber de qué película era cada
+carpeta sin ir a consultarlo a la base. Ahora va por el slug, que ya es único.
+Si un título se renombra, lo publicado conserva el nombre viejo hasta que se
+vuelva a transcodificar; no rompe nada porque la URL se guarda entera en la fila.
+
+Para pasar un bucket con la estructura antigua hay un script de una sola vez:
+`node scripts/reorganizar-almacenamiento.mjs` (simula) y `--aplicar` (lo hace).
+Copia, comprueba, reapunta la base y solo entonces borra: si se corta a mitad,
+lo peor que queda son objetos duplicados, nunca un título sin su vídeo.
+
 **Flujo de subida (ambos drivers, mismo contrato):**
 
 1. `POST /admin/subidas/firmar` `{ "nombreArchivo": "peli.mp4", "contentType": "video/mp4" }`

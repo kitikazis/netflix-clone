@@ -17,7 +17,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { storageConfig } from '@/config';
 import { Almacenamiento, DestinoSubida, OrigenMaterializado } from './almacenamiento';
-import { PREFIJO_ORIGEN, sanitizarNombreArchivo } from './subidas.constants';
+import { construirClaveOrigen, sanitizarNombreArchivo } from './subidas.constants';
 
 /**
  * Implementación de {@link Almacenamiento} sobre Cloudflare R2 (API S3).
@@ -98,7 +98,7 @@ export class AlmacenamientoR2 implements Almacenamiento {
 
   async prepararSubida(nombreArchivo: string, contentType: string): Promise<DestinoSubida> {
     const { client, bucket } = this.exigirConfigurado();
-    const clave = `${PREFIJO_ORIGEN}/${randomUUID()}/${sanitizarNombreArchivo(nombreArchivo)}`;
+    const clave = construirClaveOrigen(nombreArchivo, randomUUID());
     const expiraEn = this.config.presignExpiresSeconds;
 
     const url = await getSignedUrl(

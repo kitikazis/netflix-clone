@@ -56,8 +56,9 @@ export class TranscodificacionProcessor extends WorkerHost implements OnApplicat
         (porcentaje) => void job.updateProgress(porcentaje),
       );
 
-      await this.almacenamiento.publicarHls(dirTrabajo, activoId);
-      const hlsPlaylistUrl = this.almacenamiento.urlPublica(`${activoId}/${master}`);
+      const prefijo = await this.transcod.prefijoDestino(tipo, activoId);
+      await this.almacenamiento.publicarHls(dirTrabajo, prefijo);
+      const hlsPlaylistUrl = this.almacenamiento.urlPublica(`${prefijo}/${master}`);
 
       await this.transcod.completar(tipo, activoId, {
         hlsPlaylistUrl,

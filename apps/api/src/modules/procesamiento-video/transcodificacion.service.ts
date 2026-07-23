@@ -13,6 +13,7 @@ import {
   JOB_TRANSCODIFICAR,
   TipoActivo,
 } from './transcodificacion.constants';
+import { PREFIJO_HLS } from './almacenamiento/subidas.constants';
 
 /** Cambios acotados a los campos del pipeline (compartidos por ambas entidades). */
 interface CambiosProcesamiento {
@@ -38,6 +39,32 @@ export class TranscodificacionService {
     @InjectRepository(Episodio)
     private readonly episodioRepo: Repository<Episodio>,
   ) {}
+
+  /**
+   * Prefijo bajo el que se publica el HLS de un activo.
+   *
+   * Va por el slug y no por el id porque estas carpetas se acaban mirando a
+   * mano en el panel del almacenamiento, y un UUID no dice de qué título es;
+   * había que ir a consultarlo a la base de datos. Los episodios cuelgan de su
+   * serie con la numeración de siempre: `hls/mi-serie/t1e2`.
+   *
+   * Si un título se renombra, su slug cambia y el HLS ya publicado se queda con
+   * el nombre viejo. No rompe nada —la URL se guarda entera en la fila—, pero
+   * hasta que se vuelva a transcodificar la carpeta llevará el nombre anterior.
+   */
+  async prefijoDestino(tipo: TipoActivo, activoId: string): Promise<string> {
+    if (tipo === TipoActivo.CONTENIDO) {
+      const contenido = await this.contenidoRepo.findOne({ where: { id: activoId } });
+      return `${PREFIJO_HLS}/${contenido?.slug ?? activoId}`;
+    }
+
+    const episodio = await this.episodioRepo.findOne({
+      where: { id: activoId },
+      relations: { contenido: true },
+    });
+    if (!episodio?.contenido) return `${PREFIJO_HLS}/${activoId}`;
+    return `${PREFIJO_HLS}/${episodio.contenido.slug}/t${episodio.temporada}e${episodio.numeroEpisodio}`;
+  }
 
   /** Encola la transcodificación de una película (Contenido tipo PELICULA). */
   async encolarContenido(contenidoId: string, claveOrigen: string) {

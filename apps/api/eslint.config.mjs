@@ -5,7 +5,16 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'node_modules', 'coverage', 'eslint.config.mjs', 'jest.config.js'],
+    // `scripts/` son utilidades sueltas que se lanzan con `node`, fuera del
+    // tsconfig del servicio: el linter con tipos no puede analizarlas.
+    ignores: [
+      'dist',
+      'node_modules',
+      'coverage',
+      'scripts',
+      'eslint.config.mjs',
+      'jest.config.js',
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
