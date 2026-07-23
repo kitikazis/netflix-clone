@@ -254,9 +254,12 @@ export default function CatalogoAdmin() {
                   </td>
                   <td>
                     <EstadoVideo
+                      tipo="contenido"
+                      id={c.id}
                       estado={c.estadoProcesamiento}
                       progreso={progresos[c.id]}
                       tieneVideo={!!c.hlsPlaylistUrl}
+                      alReintentar={() => void cargar()}
                     />
                   </td>
                   <td className="admin-acciones">

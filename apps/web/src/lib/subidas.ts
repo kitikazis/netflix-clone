@@ -146,3 +146,15 @@ export function encolarEpisodio(id: string, claveOrigen: string): Promise<unknow
 export function obtenerProgresos(): Promise<Record<string, number>> {
   return peticionCuenta<Record<string, number>>('/admin/procesamiento/progreso');
 }
+
+/**
+ * Reintenta la conversión sin volver a subir el archivo: la API guardó la clave
+ * del original la primera vez.
+ */
+export function reintentar(
+  tipo: 'contenido' | 'episodio',
+  id: string,
+): Promise<unknown> {
+  const ruta = tipo === 'contenido' ? 'contenido' : 'episodios';
+  return peticionCuenta(`/admin/procesamiento/${ruta}/${id}/reintentar`, { method: 'POST' });
+}

@@ -1,8 +1,14 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Contenido } from '@/modules/catalogo/entities/contenido.entity';
 import { Episodio } from '@/modules/catalogo/entities/episodio.entity';
 import { TipoContenido } from '@/modules/catalogo/enums/tipo-contenido.enum';
@@ -30,7 +36,9 @@ interface CambiosProcesamiento {
  * TranscodificacionProcessor; aquí solo va la coordinación y el estado.
  */
 @Injectable()
-export class TranscodificacionService {
+export class TranscodificacionService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(TranscodificacionService.name);
+
   constructor(
     @InjectQueue(COLA_TRANSCODIFICACION)
     private readonly cola: Queue<DatosJobTranscodificacion>,
@@ -58,6 +66,66 @@ export class TranscodificacionService {
       salida[id] = typeof trabajo.progress === 'number' ? Math.round(trabajo.progress) : 0;
     }
     return salida;
+  }
+
+  /**
+   * Rescata lo que se quedó a medias.
+   *
+   * Un trabajo puede morir sin avisar: se reinicia el servicio, el proceso se
+   * queda sin memoria, el hosting gratuito duerme el contenedor. La fila se
+   * queda en PROCESANDO para siempre —nadie va a terminarla— y desde el panel
+   * es indistinguible de una que va a acabar en un minuto.
+   *
+   * Al arrancar se comparan las filas en PROCESANDO con lo que hay realmente en
+   * la cola. Las que no tengan trabajo vivo se vuelven a encolar solas, que la
+   * clave del vídeo original sigue guardada y no hace falta volver a subirlo.
+   * Si ni eso queda, se marcan como error en vez de mentir.
+   */
+  async onApplicationBootstrap(): Promise<void> {
+    const vivos = new Set(Object.keys(await this.progresos()));
+
+    for (const [tipo, repo] of [
+      [TipoActivo.CONTENIDO, this.contenidoRepo],
+      [TipoActivo.EPISODIO, this.episodioRepo],
+    ] as const) {
+      // EN_COLA cuenta igual que PROCESANDO: un trabajo que muere esperando
+      // turno deja la fila igual de colgada que uno que muere a medio convertir.
+      const colgados = await repo.find({
+        where: {
+          estadoProcesamiento: In([EstadoProcesamiento.EN_COLA, EstadoProcesamiento.PROCESANDO]),
+        },
+      });
+
+      for (const fila of colgados) {
+        if (vivos.has(fila.id)) continue;
+
+        if (fila.videoOrigenClave) {
+          this.logger.warn(`Retomando ${tipo} ${fila.id}: se quedó a medias`);
+          await this.encolar(tipo, fila.id, fila.videoOrigenClave);
+        } else {
+          this.logger.warn(`${tipo} ${fila.id} quedó a medias y sin vídeo de origen`);
+          await this.fallar(tipo, fila.id, 'La conversión se interrumpió y no quedó el original');
+        }
+      }
+    }
+  }
+
+  /**
+   * Reintenta la conversión con el vídeo que ya se subió.
+   *
+   * No hace falta volver a subir nada: la clave del original está en la fila
+   * desde la primera vez.
+   */
+  async reintentar(tipo: TipoActivo, activoId: string) {
+    const repo = tipo === TipoActivo.CONTENIDO ? this.contenidoRepo : this.episodioRepo;
+    const fila = await repo.findOne({ where: { id: activoId } });
+    if (!fila) {
+      throw new NotFoundException('No encontrado');
+    }
+    if (!fila.videoOrigenClave) {
+      throw new BadRequestException('No hay vídeo original guardado: hay que subirlo otra vez');
+    }
+    return this.encolar(tipo, activoId, fila.videoOrigenClave);
   }
 
   /**

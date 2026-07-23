@@ -14,6 +14,7 @@ import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolUsuario } from '@/modules/usuarios/enums/rol-usuario.enum';
 import { TranscodificacionService } from './transcodificacion.service';
+import { TipoActivo } from './transcodificacion.constants';
 import { ProcesarVideoDto } from './dto/procesar-video.dto';
 
 /**
@@ -51,5 +52,23 @@ export class ProcesamientoVideoController {
   @Post('episodios/:id')
   procesarEpisodio(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ProcesarVideoDto) {
     return this.transcod.encolarEpisodio(id, dto.claveOrigen);
+  }
+
+  /**
+   * Reintento sin volver a subir: la clave del vídeo original quedó guardada en
+   * la fila la primera vez, así que basta con encolarlo otra vez.
+   */
+  @ApiOperation({ summary: 'Reintenta la conversión de una película ya subida' })
+  @HttpCode(202)
+  @Post('contenido/:id/reintentar')
+  reintentarContenido(@Param('id', ParseUUIDPipe) id: string) {
+    return this.transcod.reintentar(TipoActivo.CONTENIDO, id);
+  }
+
+  @ApiOperation({ summary: 'Reintenta la conversión de un episodio ya subido' })
+  @HttpCode(202)
+  @Post('episodios/:id/reintentar')
+  reintentarEpisodio(@Param('id', ParseUUIDPipe) id: string) {
+    return this.transcod.reintentar(TipoActivo.EPISODIO, id);
   }
 }

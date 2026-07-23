@@ -718,6 +718,8 @@ a { color: inherit; }
   font-size: var(--t-xs); color: var(--tinta-media);
   font-variant-numeric: tabular-nums; min-width: 3.2rem; text-align: right;
 }
+.ev-parado { display: flex; align-items: center; gap: 0.5rem; }
+.ev-parado .pa-btn { padding: 0.2rem 0.5rem; }
 
 /* ---------- Tarjetas de cifras ---------- */
 .pa-tarjetas {

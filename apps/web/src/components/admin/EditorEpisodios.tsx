@@ -182,9 +182,12 @@ export function EditorEpisodios({ serie, alCerrar }: Props) {
                         <td>{ep.duracionMinutos ? `${ep.duracionMinutos} min` : '—'}</td>
                         <td>
                           <EstadoVideo
+                            tipo="episodio"
+                            id={ep.id}
                             estado={ep.estadoProcesamiento}
                             progreso={progresos[ep.id]}
                             tieneVideo={!!ep.hlsPlaylistUrl}
+                            alReintentar={() => void cargar()}
                           />
                         </td>
                         <td className="admin-acciones">
