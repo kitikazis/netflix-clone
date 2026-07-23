@@ -136,3 +136,13 @@ export function encolarEpisodio(id: string, claveOrigen: string): Promise<unknow
     body: { claveOrigen },
   });
 }
+
+/**
+ * Porcentaje de lo que se está transcodificando ahora, por id de activo.
+ *
+ * Solo aparecen los trabajos vivos: en cuanto uno termina desaparece del mapa y
+ * su estado ya lo cuenta el propio título.
+ */
+export function obtenerProgresos(): Promise<Record<string, number>> {
+  return peticionCuenta<Record<string, number>>('/admin/procesamiento/progreso');
+}

@@ -10,6 +10,8 @@ import {
 } from '@/lib/admin';
 import type { Contenido, Episodio } from '@/lib/tipos';
 import { SubirVideo } from './SubirVideo';
+import { EstadoVideo } from './EstadoVideo';
+import { obtenerProgresos } from '@/lib/subidas';
 
 interface Props {
   serie: Contenido;
@@ -39,12 +41,18 @@ export function EditorEpisodios({ serie, alCerrar }: Props) {
   const [creando, setCreando] = useState(false);
   const [subiendo, setSubiendo] = useState<Episodio | null>(null);
   const [borrando, setBorrando] = useState<string | null>(null);
+  const [progresos, setProgresos] = useState<Record<string, number>>({});
 
   const cargar = useCallback(async () => {
     setCargando(true);
     setError(null);
     try {
-      setEpisodios(await listarEpisodios(serie.id));
+      const [lista, avance] = await Promise.all([
+        listarEpisodios(serie.id),
+        obtenerProgresos().catch(() => ({})),
+      ]);
+      setEpisodios(lista);
+      setProgresos(avance);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar los episodios');
     } finally {
@@ -62,10 +70,12 @@ export function EditorEpisodios({ serie, alCerrar }: Props) {
    * no las mil películas del catálogo, y un episodio sin vídeo es justo lo que
    * se está a punto de subir.
    */
-  const enMarcha = episodios.some((e) => e.estadoProcesamiento === 'PROCESANDO');
+  const enMarcha =
+    Object.keys(progresos).length > 0 ||
+    episodios.some((e) => e.estadoProcesamiento === 'PROCESANDO');
   useEffect(() => {
     if (!enMarcha) return;
-    const t = window.setInterval(() => void cargar(), 5000);
+    const t = window.setInterval(() => void cargar(), 3000);
     return () => window.clearInterval(t);
   }, [enMarcha, cargar]);
 
@@ -171,9 +181,11 @@ export function EditorEpisodios({ serie, alCerrar }: Props) {
                         <td>{ep.titulo}</td>
                         <td>{ep.duracionMinutos ? `${ep.duracionMinutos} min` : '—'}</td>
                         <td>
-                          <span className={`pa-estado ${ep.estadoProcesamiento.toLowerCase()}`}>
-                            {ep.estadoProcesamiento}
-                          </span>
+                          <EstadoVideo
+                            estado={ep.estadoProcesamiento}
+                            progreso={progresos[ep.id]}
+                            tieneVideo={!!ep.hlsPlaylistUrl}
+                          />
                         </td>
                         <td className="admin-acciones">
                           <button

@@ -41,6 +41,26 @@ export class TranscodificacionService {
   ) {}
 
   /**
+   * Progreso de lo que hay ahora mismo en la cola, por activo.
+   *
+   * El porcentaje se queda en BullMQ y no se guarda en Postgres a propósito:
+   * ffmpeg lo actualiza varias veces por segundo, y sería reescribir la misma
+   * fila sin parar para un dato que deja de existir en cuanto el trabajo acaba.
+   * Quien lo quiera, que lo pregunte.
+   */
+  async progresos(): Promise<Record<string, number>> {
+    const trabajos = await this.cola.getJobs(['active', 'waiting', 'delayed'], 0, 100);
+    const salida: Record<string, number> = {};
+    for (const trabajo of trabajos) {
+      const id = trabajo?.data?.activoId;
+      if (!id) continue;
+      // Los que aún no ha cogido nadie no tienen progreso: cuentan como cero.
+      salida[id] = typeof trabajo.progress === 'number' ? Math.round(trabajo.progress) : 0;
+    }
+    return salida;
+  }
+
+  /**
    * Prefijo bajo el que se publica el HLS de un activo.
    *
    * Va por el slug y no por el id porque estas carpetas se acaban mirando a

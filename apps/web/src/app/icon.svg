@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <title>Kitiflix</title>
+  <!--
+    Icono del sitio. Se dibuja con trazos y no con texto porque una fuente
+    dentro de un favicon depende de lo que tenga instalado cada sistema, y la
+    Bodoni del sitio no la tiene casi nadie: acabaría cayendo en cualquier otra.
+
+    Fondo de papel para que se recorte contra la barra oscura del navegador, y
+    el punto rojo de la marca abajo a la derecha. A 16 px lo único que se lee es
+    la K y el punto, que es justo lo que se quiere.
+  -->
+  <rect width="32" height="32" rx="7" fill="#f4efe6" />
+  <path
+    d="M11 6.5 V25.5 M11 16 L20 6.5 M11 16 L19.5 25.5"
+    stroke="#1a1614"
+    stroke-width="3.6"
+    stroke-linecap="square"
+    fill="none"
+  />
+  <circle cx="25" cy="25" r="3.2" fill="#a8342a" />
+</svg>

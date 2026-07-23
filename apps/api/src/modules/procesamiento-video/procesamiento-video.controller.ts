@@ -1,4 +1,13 @@
-import { Body, Controller, HttpCode, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAccessGuard } from '@/common/guards/jwt-access.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -19,6 +28,16 @@ import { ProcesarVideoDto } from './dto/procesar-video.dto';
 @Controller('admin/procesamiento')
 export class ProcesamientoVideoController {
   constructor(private readonly transcod: TranscodificacionService) {}
+
+  /**
+   * Va antes que las rutas con parámetro: Nest resuelve por orden de
+   * declaración y `progreso` encajaría en un `:id` puesto por delante.
+   */
+  @ApiOperation({ summary: 'Porcentaje de lo que se está transcodificando ahora' })
+  @Get('progreso')
+  progreso() {
+    return this.transcod.progresos();
+  }
 
   @ApiOperation({ summary: 'Encola la transcodificación de una película' })
   @HttpCode(202)

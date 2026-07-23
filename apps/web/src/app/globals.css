@@ -702,6 +702,23 @@ a { color: inherit; }
 .pa-estado.procesando { color: #d2a24c; }
 .pa-estado.error { color: var(--alerta); }
 
+/* ---------- Estado del vídeo en la tabla ---------- */
+.ev { display: flex; align-items: center; gap: 0.5rem; min-width: 7.5rem; }
+.ev-barra {
+  flex: 1; height: 3px; border-radius: 999px;
+  background: var(--filete); overflow: hidden;
+}
+/* La transición suaviza el salto entre consultas: sin ella la barra da tirones
+   de varios puntos cada vez que llega el dato nuevo. */
+.ev-barra span {
+  display: block; height: 100%; background: var(--tinta-roja);
+  transition: width 600ms linear;
+}
+.ev-pct {
+  font-size: var(--t-xs); color: var(--tinta-media);
+  font-variant-numeric: tabular-nums; min-width: 3.2rem; text-align: right;
+}
+
 /* ---------- Tarjetas de cifras ---------- */
 .pa-tarjetas {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));

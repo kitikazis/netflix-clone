@@ -13,6 +13,8 @@ import { Shell } from '@/components/admin/Shell';
 import { FormularioContenido } from '@/components/admin/FormularioContenido';
 import { EditorEpisodios } from '@/components/admin/EditorEpisodios';
 import { SubirVideo } from '@/components/admin/SubirVideo';
+import { EstadoVideo } from '@/components/admin/EstadoVideo';
+import { obtenerProgresos } from '@/lib/subidas';
 
 const LIMITE = 20;
 
@@ -33,6 +35,8 @@ export default function CatalogoAdmin() {
   const [error, setError] = useState<string | null>(null);
   const [borrando, setBorrando] = useState<string | null>(null);
 
+  const [progresos, setProgresos] = useState<Record<string, number>>({});
+
   const cargar = useCallback(async () => {
     setCargando(true);
     setError(null);
@@ -42,9 +46,15 @@ export default function CatalogoAdmin() {
       // El listado de administración devuelve todo; para ver solo los
       // borradores hay que pedir explícitamente publicado=false.
       if (soloBorradores) filtros.publicado = false;
-      const res = await listarContenido(filtros);
+      // El progreso vive en la cola, no en la fila: va en su propia consulta.
+      // Si falla, se pierde el porcentaje pero la tabla se sigue viendo.
+      const [res, avance] = await Promise.all([
+        listarContenido(filtros),
+        obtenerProgresos().catch(() => ({})),
+      ]);
       setItems(res.datos);
       setPaginacion(res.paginacion);
+      setProgresos(avance);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar el catálogo');
     } finally {
@@ -75,11 +85,15 @@ export default function CatalogoAdmin() {
     return !item || (item.estadoProcesamiento !== 'LISTO' && item.estadoProcesamiento !== 'ERROR');
   });
   const enMarcha =
-    esperando.length > 0 || items.some((c) => c.estadoProcesamiento === 'PROCESANDO');
+    esperando.length > 0 ||
+    Object.keys(progresos).length > 0 ||
+    items.some((c) => c.estadoProcesamiento === 'PROCESANDO');
 
   useEffect(() => {
     if (!enMarcha) return;
-    const t = window.setInterval(() => void cargar(), 5000);
+    // Tres segundos: con cinco, la barra de progreso daba saltos demasiado
+    // grandes para leerse como algo que avanza.
+    const t = window.setInterval(() => void cargar(), 3000);
     return () => window.clearInterval(t);
   }, [enMarcha, cargar]);
 
@@ -239,9 +253,11 @@ export default function CatalogoAdmin() {
                     </span>
                   </td>
                   <td>
-                    <span className={`pa-estado ${c.estadoProcesamiento.toLowerCase()}`}>
-                      {c.estadoProcesamiento}
-                    </span>
+                    <EstadoVideo
+                      estado={c.estadoProcesamiento}
+                      progreso={progresos[c.id]}
+                      tieneVideo={!!c.hlsPlaylistUrl}
+                    />
                   </td>
                   <td className="admin-acciones">
                     {/* En una serie el vídeo cuelga de cada episodio, no del
