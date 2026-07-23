@@ -146,6 +146,18 @@ Para pasar un bucket con la estructura antigua hay un script de una sola vez:
 Copia, comprueba, reapunta la base y solo entonces borra: si se corta a mitad,
 lo peor que queda son objetos duplicados, nunca un título sin su vídeo.
 
+> **El vídeo se sube pero no aparece en el bucket.** Casi siempre es que la API
+> arrancó sin `STORAGE_DRIVER`, cuyo valor por defecto es `local`: los vídeos se
+> quedan en el disco de la máquina que la ejecuta aunque la base de datos esté en
+> la nube. El título llega a LISTO, la fila apunta a una ruta `/media/...` que
+> solo existe ahí, y en el bucket no hay nada. Al arrancar se dice cuál está
+> activo, así que basta con mirar la primera línea del log:
+>
+> ```
+> LOG  [Almacenamiento] Vídeos en almacenamiento externo (bucket "media")
+> WARN [Almacenamiento] STORAGE_DRIVER=local: los vídeos se guardan en el disco…
+> ```
+
 **Flujo de subida (ambos drivers, mismo contrato):**
 
 1. `POST /admin/subidas/firmar` `{ "nombreArchivo": "peli.mp4", "contentType": "video/mp4" }`

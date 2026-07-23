@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -55,7 +55,27 @@ import { AlmacenamientoR2 } from './almacenamiento/almacenamiento-r2.service';
         config: ConfigType<typeof storageConfig>,
         local: AlmacenamientoLocal,
         r2: AlmacenamientoR2,
-      ) => (config.driver === 'r2' ? r2 : local),
+      ) => {
+        /**
+         * Se dice en voz alta cuál se ha elegido.
+         *
+         * `local` es el valor por defecto cuando no hay `STORAGE_DRIVER`, y esa
+         * combinación —base de datos en la nube, vídeos en el disco de quien
+         * levanta la API— es silenciosa y desconcertante: el vídeo se sube, se
+         * convierte, el título aparece como LISTO… y en el bucket no hay nada,
+         * porque todo se quedó en una carpeta local. Pasó, y costó horas verlo.
+         */
+        const registro = new Logger('Almacenamiento');
+        if (config.driver === 'r2') {
+          registro.log(`Vídeos en almacenamiento externo (bucket "${config.r2.bucket}")`);
+          return r2;
+        }
+        registro.warn(
+          'STORAGE_DRIVER=local: los vídeos se guardan en el disco de esta máquina, ' +
+            'no en el bucket. Si esperabas que se subieran, revisa la configuración.',
+        );
+        return local;
+      },
     },
   ],
   exports: [TranscodificacionService, SubidasService, ALMACENAMIENTO],
