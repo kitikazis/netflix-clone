@@ -56,6 +56,33 @@ export default function CatalogoAdmin() {
     void cargar();
   }, [cargar]);
 
+  /**
+   * Mientras haya algo transcodificando, refrescar solo.
+   *
+   * La transcodificación corre en un worker aparte y la tabla no se enteraba de
+   * que había terminado: se quedaba igual hasta que alguien recargaba la página.
+   * Eso hacía parecer lentísimo un proceso que suele tardar menos de un minuto,
+   * porque acababa y nadie lo decía.
+   *
+   * No vale con mirar los PENDIENTE: ese es también el estado de los mil títulos
+   * que nunca han tenido vídeo, y consultaríamos para siempre. Se mira lo que el
+   * worker ya cogió (PROCESANDO) más lo que se acaba de encolar desde aquí,
+   * hasta que ese termine de una forma u otra.
+   */
+  const [recienEncolados, setRecienEncolados] = useState<string[]>([]);
+  const esperando = recienEncolados.filter((id) => {
+    const item = items.find((c) => c.id === id);
+    return !item || (item.estadoProcesamiento !== 'LISTO' && item.estadoProcesamiento !== 'ERROR');
+  });
+  const enMarcha =
+    esperando.length > 0 || items.some((c) => c.estadoProcesamiento === 'PROCESANDO');
+
+  useEffect(() => {
+    if (!enMarcha) return;
+    const t = window.setInterval(() => void cargar(), 5000);
+    return () => window.clearInterval(t);
+  }, [enMarcha, cargar]);
+
   useEffect(() => {
     listarGeneros()
       .then(setGeneros)
@@ -164,8 +191,16 @@ export default function CatalogoAdmin() {
         <SubirVideo
           destino={{ tipo: 'contenido', id: subiendo.id }}
           nombre={subiendo.titulo}
-          estadoActual={subiendo.estadoProcesamiento}
-          alTerminar={() => void cargar()}
+          // Del listado recién cargado, no del objeto con el que se abrió: así
+          // el estado de la cabecera avanza con los refrescos automáticos.
+          estadoActual={
+            items.find((c) => c.id === subiendo.id)?.estadoProcesamiento ??
+            subiendo.estadoProcesamiento
+          }
+          alTerminar={() => {
+            setRecienEncolados((ids) => [...new Set([...ids, subiendo.id])]);
+            void cargar();
+          }}
           alCerrar={() => setSubiendo(null)}
         />
       )}

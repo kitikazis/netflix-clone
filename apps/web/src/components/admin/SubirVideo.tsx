@@ -64,15 +64,20 @@ export function SubirVideo({ destino, nombre, estadoActual, alTerminar, alCerrar
     <div className="subida">
       <div className="subida-cab">
         <span className="subida-titulo">Vídeo de «{nombre}»</span>
-        {estadoActual && <span className="admin-estado">{estadoActual}</span>}
+        {estadoActual && (
+          <span className={`pa-estado ${estadoActual.toLowerCase()}`}>{estadoActual}</span>
+        )}
       </div>
 
       {fase === 'hecho' ? (
         <>
+          {/* El estado de la cabecera lo va refrescando la tabla cada pocos
+              segundos, así que aquí se ve terminar sin recargar la página. */}
           <p className="panel-txt">
-            Subido y encolado. La transcodificación corre aparte: el estado pasará a
-            <strong> PROCESANDO</strong> y luego a <strong>LISTO</strong> por su cuenta.
-            Puede tardar varios minutos según la duración del vídeo.
+            Subido. Ahora se está convirtiendo a varias calidades, y eso corre en
+            segundo plano: verás el estado pasar a <strong>PROCESANDO</strong> y luego a{' '}
+            <strong>LISTO</strong> aquí mismo. Suele tardar en torno a un minuto por cada
+            diez de vídeo.
           </p>
           <div className="admin-form-acciones">
             <button type="button" className="btn btn-play" onClick={alCerrar}>

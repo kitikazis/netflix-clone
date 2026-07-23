@@ -56,6 +56,19 @@ export function EditorEpisodios({ serie, alCerrar }: Props) {
     void cargar();
   }, [cargar]);
 
+  /**
+   * Refresco automático mientras algo se transcodifica, igual que en el
+   * catálogo. Aquí sí vale mirar los PENDIENTE: son los episodios de UNA serie,
+   * no las mil películas del catálogo, y un episodio sin vídeo es justo lo que
+   * se está a punto de subir.
+   */
+  const enMarcha = episodios.some((e) => e.estadoProcesamiento === 'PROCESANDO');
+  useEffect(() => {
+    if (!enMarcha) return;
+    const t = window.setInterval(() => void cargar(), 5000);
+    return () => window.clearInterval(t);
+  }, [enMarcha, cargar]);
+
   async function borrar(ep: Episodio) {
     if (!confirm(`¿Eliminar T${ep.temporada}E${ep.numeroEpisodio} «${ep.titulo}»?`)) return;
     setBorrando(ep.id);
@@ -121,7 +134,10 @@ export function EditorEpisodios({ serie, alCerrar }: Props) {
         <SubirVideo
           destino={{ tipo: 'episodio', id: subiendo.id }}
           nombre={`T${subiendo.temporada}E${subiendo.numeroEpisodio} · ${subiendo.titulo}`}
-          estadoActual={subiendo.estadoProcesamiento}
+          estadoActual={
+            episodios.find((e) => e.id === subiendo.id)?.estadoProcesamiento ??
+            subiendo.estadoProcesamiento
+          }
           alTerminar={() => void cargar()}
           alCerrar={() => setSubiendo(null)}
         />
