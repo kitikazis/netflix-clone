@@ -16,9 +16,22 @@ export const API_BASE_URL = process.env.API_URL ?? 'http://localhost:3000/api/v1
 export const API_PUBLIC_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
 
-/** Origen de la API (sin `/api/v1`), para resolver rutas de media relativas. */
+/** Origen de la API (sin `/api/v1`), para resolver rutas relativas que devuelve. */
 function origenApi(base: string): string {
   return base.replace(/\/api\/v\d+\/?$/, '');
+}
+
+/**
+ * Ancla al origen de la API una ruta que ella misma ha devuelto.
+ *
+ * La API responde con rutas relativas en varios sitios (el HLS del driver
+ * local, el destino de una subida directa). Si el navegador las usa tal cual,
+ * las resuelve contra el dominio del FRONT, que es otro: ahí no hay nada y
+ * devuelve 404.
+ */
+export function urlApi(ruta: string): string {
+  if (/^https?:\/\//.test(ruta)) return ruta;
+  return `${origenApi(API_PUBLIC_URL)}${ruta}`;
 }
 
 /**
@@ -27,6 +40,5 @@ function origenApi(base: string): string {
  */
 export function urlMedia(hlsPlaylistUrl: string | null | undefined): string | null {
   if (!hlsPlaylistUrl) return null;
-  if (/^https?:\/\//.test(hlsPlaylistUrl)) return hlsPlaylistUrl;
-  return `${origenApi(API_PUBLIC_URL)}${hlsPlaylistUrl}`;
+  return urlApi(hlsPlaylistUrl);
 }

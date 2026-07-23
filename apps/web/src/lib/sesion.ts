@@ -179,6 +179,16 @@ async function crudo<T>(path: string, opciones: Opciones & { token?: string }): 
   return (json as { data: T }).data;
 }
 
+/**
+ * Token de cuenta en crudo.
+ *
+ * Lo necesita la subida de vídeos, que no puede pasar por `peticionCuenta`
+ * porque manda el archivo con XMLHttpRequest para poder informar del progreso.
+ */
+export function tokenDeCuenta(): string | null {
+  return leer()?.cuentaToken ?? null;
+}
+
 function tokenDe(ambito: Ambito, sesion: Sesion | null): string | null {
   if (ambito === 'ninguno') return null;
   if (!sesion) return null;

@@ -1,6 +1,7 @@
 'use client';
 
-import { peticionCuenta } from './sesion';
+import { peticionCuenta, tokenDeCuenta } from './sesion';
+import { urlApi } from './urls';
 
 /**
  * Subida de vídeos fuente y encolado de la transcodificación.
@@ -36,6 +37,25 @@ export function formatearBytes(bytes: number): string {
 }
 
 /**
+ * Traduce el código a algo accionable. Un número suelto no dice qué revisar, y
+ * estos tres fallos tienen causas muy concretas.
+ */
+function explicar(estado: number, propia: boolean): string {
+  if (estado === 404) {
+    return propia
+      ? 'La API no tiene habilitada la subida directa. Revisa que esté en marcha y actualizada.'
+      : 'El almacenamiento no encuentra el destino: comprueba que el bucket exista y que S3_ENDPOINT apunte a él.';
+  }
+  if (estado === 401 || estado === 403) {
+    return propia
+      ? 'Tu sesión no tiene permiso para subir. Vuelve a entrar como administrador.'
+      : 'El almacenamiento rechazó las credenciales. Revisa las claves S3 de la API.';
+  }
+  if (estado === 413) return 'El archivo es demasiado grande para el destino.';
+  return `El almacenamiento rechazó la subida (${estado})`;
+}
+
+/**
  * Sube el archivo al almacenamiento y devuelve la clave con la que la API
  * podrá encontrarlo.
  *
@@ -57,10 +77,22 @@ export function subirVideo(
   }).then(
     (destino) =>
       new Promise<string>((resolver, rechazar) => {
+        // Con almacenamiento externo la URL viene firmada y absoluta. Con el
+        // driver local es una ruta de la propia API, y hay que anclarla a su
+        // origen: si no, el navegador la resuelve contra el dominio del front,
+        // donde no existe, y responde 404.
+        const propia = !/^https?:\/\//.test(destino.url);
         const xhr = new XMLHttpRequest();
-        xhr.open(destino.metodo, destino.url);
+        xhr.open(destino.metodo, urlApi(destino.url));
         for (const [clave, valor] of Object.entries(destino.headers ?? {})) {
           xhr.setRequestHeader(clave, valor);
+        }
+        // El token solo va a nuestra API. Una URL prefirmada ya lleva su propia
+        // autorización en la firma, y añadirle cabeceras la invalidaría además
+        // de entregarle el token a un tercero.
+        if (propia) {
+          const token = tokenDeCuenta();
+          if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         }
 
         xhr.upload.onprogress = (e) => {
@@ -68,8 +100,8 @@ export function subirVideo(
         };
 
         xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) resolver(destino.clave);
-          else rechazar(new Error(`El almacenamiento rechazó la subida (${xhr.status})`));
+          if (xhr.status >= 200 && xhr.status < 300) return resolver(destino.clave);
+          rechazar(new Error(explicar(xhr.status, propia)));
         };
 
         // El navegador no cuenta por qué falló una petición entre orígenes, así
