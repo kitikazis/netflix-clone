@@ -560,9 +560,200 @@ a { color: inherit; }
 
 /* ============================================================
    ADMINISTRACIÓN
-   Mismo lenguaje de filetes y versalitas que el resto: una hoja de
-   trabajo impresa, no un panel de control aparte.
+   Aquí sí se rompe con el resto a propósito. El catálogo es un
+   escaparate y se lee de lejos; esto es una herramienta donde hace
+   falta ver muchas filas a la vez. Fondo oscuro, tipografía de
+   sistema y densidad alta: además de leerse mejor, deja claro de un
+   vistazo que no se está mirando la web pública.
+
+   El tema se hace remapeando las variables dentro de `.pa` en vez de
+   reescribir cada componente: las tablas, formularios y botones que
+   ya existían se vuelven oscuros sin tocarlos.
    ============================================================ */
+
+.pa {
+  --papel: #131417;
+  --papel-hueco: #1b1d21;
+  --papel-alto: #1b1d21;
+  --tinta: #e8e6e3;
+  --tinta-media: #a3a09b;
+  --tinta-suave: #7c7975;
+  --filete: #2a2d33;
+  --filete-fuerte: #3a3e46;
+  --tinta-roja: #e0705f;
+  --alerta: #e0705f;
+  --exito: #6cc08a;
+  /* Sin serifas: a 13 px y en tablas densas, la Bodoni se emborrona. */
+  --display: var(--texto);
+
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  min-height: 100vh;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--texto);
+}
+
+/* ---------- Barra lateral ---------- */
+.pa-lateral {
+  display: flex; flex-direction: column; gap: var(--e3);
+  padding: var(--e3) var(--e2);
+  background: #0e0f11; border-right: 1px solid var(--filete);
+  position: sticky; top: 0; height: 100vh;
+}
+.pa-marca {
+  display: flex; align-items: center; gap: 0.55rem;
+  padding: 0 0.6rem; font-size: var(--t-md); font-weight: 600;
+  color: var(--tinta); text-decoration: none; letter-spacing: -0.01em;
+}
+.pa-marca-punto {
+  width: 0.55rem; height: 0.55rem; border-radius: 50%;
+  background: var(--tinta-roja);
+}
+.pa-nav { display: flex; flex-direction: column; gap: 0.15rem; }
+.pa-nav-item {
+  display: flex; align-items: center; gap: 0.65rem;
+  padding: 0.5rem 0.6rem; border-radius: 0.375rem;
+  color: var(--tinta-media); text-decoration: none; font-size: var(--t-sm);
+  transition: background var(--transicion), color var(--transicion);
+}
+.pa-nav-item:hover { background: #16181c; color: var(--tinta); }
+.pa-nav-item.activa { background: #1e2126; color: var(--tinta); font-weight: 500; }
+.pa-nav-icono {
+  width: 1rem; text-align: center; color: var(--tinta-suave); font-size: var(--t-xs);
+}
+.pa-nav-item.activa .pa-nav-icono { color: var(--tinta-roja); }
+.pa-pie {
+  margin-top: auto; display: flex; flex-direction: column; gap: 0.3rem;
+  padding: var(--e2) 0.6rem 0; border-top: 1px solid var(--filete);
+  font-size: var(--t-xs);
+}
+.pa-correo {
+  color: var(--tinta-media); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.pa-salir { color: var(--tinta-suave); text-decoration: none; }
+.pa-salir:hover { color: var(--tinta-roja); }
+
+/* ---------- Cabecera y contenido ---------- */
+.pa-cuerpo { display: flex; flex-direction: column; min-width: 0; }
+.pa-cabecera {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: var(--e3); flex-wrap: wrap;
+  padding: var(--e3) var(--e4); border-bottom: 1px solid var(--filete);
+}
+.pa-titulo { font-size: var(--t-lg); font-weight: 600; letter-spacing: -0.015em; margin: 0; }
+.pa-descripcion { margin: 0.15rem 0 0; color: var(--tinta-media); font-size: var(--t-sm); }
+.pa-acciones { display: flex; align-items: center; gap: var(--e2); flex-wrap: wrap; }
+.pa-contenido {
+  padding: var(--e3) var(--e4) var(--e5);
+  display: flex; flex-direction: column; gap: var(--e3); min-width: 0;
+}
+
+/* ---------- Controles ---------- */
+.pa-btn {
+  padding: 0.4rem 0.7rem; border: 1px solid var(--filete-fuerte); border-radius: 0.375rem;
+  background: #1b1d21; color: var(--tinta-media);
+  font-family: inherit; font-size: var(--t-xs); cursor: pointer; white-space: nowrap;
+  transition: color var(--transicion), border-color var(--transicion), background var(--transicion);
+}
+.pa-btn:hover:not(:disabled) { color: var(--tinta); border-color: #4a4f58; background: #22252a; }
+.pa-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pa-btn.primario {
+  background: var(--tinta-roja); border-color: var(--tinta-roja); color: #14110f; font-weight: 600;
+}
+.pa-btn.primario:hover:not(:disabled) { background: #eb8271; border-color: #eb8271; }
+.pa-btn.peligro:hover:not(:disabled) { color: var(--alerta); border-color: var(--alerta); }
+
+.pa-buscador {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.35rem 0.65rem; border: 1px solid var(--filete-fuerte); border-radius: 0.375rem;
+  background: #0e0f11; color: var(--tinta-suave);
+}
+.pa-buscador input {
+  background: none; border: none; color: var(--tinta);
+  font-family: inherit; font-size: var(--t-sm); width: 13rem;
+}
+.pa-buscador input:focus { outline: none; }
+.pa-buscador:focus-within { border-color: #4a4f58; }
+.pa-check {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: var(--t-sm); color: var(--tinta-media); cursor: pointer;
+}
+.pa-check input { accent-color: var(--tinta-roja); }
+.pa-paginacion {
+  display: flex; align-items: center; gap: var(--e2);
+  font-size: var(--t-xs); color: var(--tinta-suave);
+}
+
+/* ---------- Estados ---------- */
+.pa-pastilla {
+  display: inline-block; padding: 0.1rem 0.45rem; border-radius: 999px;
+  font-size: var(--t-xs); border: 1px solid transparent;
+}
+.pa-pastilla.si { color: var(--exito); border-color: #2c4a37; background: #16241b; }
+.pa-pastilla.no { color: var(--tinta-suave); border-color: var(--filete); }
+.pa-estado { font-size: var(--t-xs); color: var(--tinta-suave); white-space: nowrap; }
+.pa-estado.listo { color: var(--exito); }
+.pa-estado.procesando { color: #d2a24c; }
+.pa-estado.error { color: var(--alerta); }
+
+/* ---------- Tarjetas de cifras ---------- */
+.pa-tarjetas {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--e2); margin: 0;
+}
+.pa-tarjeta {
+  display: flex; flex-direction: column; gap: 0.2rem;
+  padding: var(--e2) var(--e3); border: 1px solid var(--filete); border-radius: 0.5rem;
+  background: var(--papel-alto);
+}
+.pa-tarjeta dt { font-size: var(--t-xs); color: var(--tinta-media); }
+.pa-tarjeta dd {
+  margin: 0; font-size: var(--t-xl); font-weight: 600;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1.1;
+}
+
+@media (max-width: 60rem) {
+  .pa { grid-template-columns: 1fr; }
+  .pa-lateral {
+    position: static; height: auto; flex-direction: row; align-items: center;
+    gap: var(--e2); overflow-x: auto; border-right: none;
+    border-bottom: 1px solid var(--filete);
+  }
+  .pa-nav { flex-direction: row; }
+  .pa-pie { display: none; }
+  .pa-cabecera, .pa-contenido { padding-inline: var(--e3); }
+}
+
+/* ------------------------------------------------------------
+   Estilos heredados del panel anterior. Siguen en uso porque las
+   tablas y formularios se reaprovechan tal cual dentro del tema
+   oscuro; solo cambian los valores de las variables.
+   ------------------------------------------------------------ */
+
+/* Los ajustes que sí dependen del tema: filas más apretadas —el sentido de
+   este panel es ver muchas a la vez— y campos con caja en vez de subrayado,
+   que sobre fondo oscuro casi no se distingue del fondo. */
+.pa .admin-tabla td { padding: 0.55rem var(--e2) 0.55rem 0; vertical-align: middle; }
+.pa .admin-tabla tr:hover td { background: #191b1f; }
+.pa .admin-titulo { font-size: var(--t-sm); font-weight: 500; }
+.pa .admin-acciones > * + * { margin-left: 0.4rem; }
+.pa .admin-form, .pa .subida { max-width: 46rem; }
+.pa .campo input, .pa .admin-campos select, .pa .admin-campos textarea {
+  border: 1px solid var(--filete-fuerte); border-radius: 0.375rem;
+  background: #0e0f11; padding: 0.45rem 0.6rem; font-size: var(--t-sm);
+}
+.pa .campo input:focus,
+.pa .admin-campos select:focus,
+.pa .admin-campos textarea:focus { border-color: #4a4f58; }
+.pa .campo > span { text-transform: none; letter-spacing: 0; color: var(--tinta-media); }
+.pa .subida { border-radius: 0.5rem; }
+.pa .subida-caja { border-radius: 0.375rem; }
+.pa .btn-play {
+  background: var(--tinta-roja); border-color: var(--tinta-roja); color: #14110f;
+}
+.pa .btn-fantasma { color: var(--tinta-media); }
 
 .admin-barra {
   display: flex; align-items: center; gap: var(--e3); flex-wrap: wrap;
@@ -621,7 +812,10 @@ a { color: inherit; }
   font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
   color: var(--tinta-suave); white-space: nowrap;
 }
-.admin-acciones { display: flex; gap: var(--e2); justify-content: flex-end; white-space: nowrap; }
+/* Sin `display:flex`: al hacer flex una celda deja de comportarse como tal y su
+   filete inferior se corta a media fila. Se separan los botones con margen. */
+.admin-acciones { text-align: right; white-space: nowrap; }
+.admin-acciones > * + * { margin-left: var(--e2); }
 
 /* ---------- Formulario ---------- */
 .admin-form { display: flex; flex-direction: column; gap: var(--e3); max-width: 54rem; }

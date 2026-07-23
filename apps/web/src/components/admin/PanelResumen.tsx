@@ -62,10 +62,10 @@ export function PanelResumen() {
     <div className="admin-resumen">
       {GRUPOS.map((grupo) => (
         <section key={grupo.titulo} className="admin-grupo">
-          <h3 className="admin-grupo-tit">{grupo.titulo}</h3>
-          <dl className="admin-cifras">
+          <h2 className="admin-grupo-tit">{grupo.titulo}</h2>
+          <dl className="pa-tarjetas">
             {grupo.cifras.map(({ etiqueta, clave }) => (
-              <div key={clave} className="admin-cifra">
+              <div key={clave} className="pa-tarjeta">
                 <dt>{etiqueta}</dt>
                 <dd>{datos[clave].toLocaleString('es')}</dd>
               </div>

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { BarraSuperior } from '@/components/BarraSuperior';
-import { AvisoSesion } from '@/components/AvisoSesion';
+import { CromoPublico, PiePublico } from '@/components/CromoPublico';
 import { display, texto } from './fuentes';
 import './globals.css';
 
@@ -13,12 +12,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`${display.variable} ${texto.variable}`}>
       <body>
-        <BarraSuperior />
-        <AvisoSesion />
-        <main className="contenido">{children}</main>
+        <CromoPublico>{children}</CromoPublico>
 
         {/* Atribución a TMDB: su licencia de uso la exige para las carátulas y
             sinopsis del catálogo. La coletilla de "no avalado" también es suya. */}
+        <PiePublico>
         <footer className="pie">
           <span>Proyecto de práctica · sin ánimo comercial</span>
           <span className="pie-tmdb">
@@ -34,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             certificado por TMDB.
           </span>
         </footer>
+        </PiePublico>
       </body>
     </html>
   );

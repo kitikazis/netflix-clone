@@ -77,13 +77,8 @@ export function FormularioContenido({ contenido, generos, alGuardar, alCancelar 
 
   return (
     <form className="admin-form" onSubmit={enviar}>
-      <div className="admin-form-cab">
-        <h2>{editando ? 'Editar título' : 'Nuevo título'}</h2>
-        <button type="button" className="barra-btn" onClick={alCancelar}>
-          Cancelar
-        </button>
-      </div>
-
+      {/* Sin cabecera propia: el armazón del panel ya dice en qué se está y
+          repetirlo aquí solo añadía un segundo titular a dos centímetros. */}
       <div className="admin-campos">
         <label className="campo">
           <span>Tipo</span>
@@ -184,6 +179,9 @@ export function FormularioContenido({ contenido, generos, alGuardar, alCancelar 
       <div className="admin-form-acciones">
         <button type="submit" className="btn btn-play" disabled={guardando || !titulo.trim()}>
           {guardando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Crear título'}
+        </button>
+        <button type="button" className="btn btn-fantasma" onClick={alCancelar}>
+          Cancelar
         </button>
       </div>
     </form>

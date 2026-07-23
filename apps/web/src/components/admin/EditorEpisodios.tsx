@@ -104,13 +104,14 @@ export function EditorEpisodios({ serie, alCerrar }: Props) {
 
   return (
     <div className="admin-episodios">
+      {/* El armazón del panel ya rotula la sección y la serie: aquí solo van
+          las acciones. */}
       <div className="admin-barra">
-        <button type="button" className="barra-btn" onClick={alCerrar}>
+        <button type="button" className="pa-btn" onClick={alCerrar}>
           ‹ Volver al catálogo
         </button>
-        <span className="subida-titulo">Episodios de «{serie.titulo}»</span>
-        <button type="button" className="btn btn-play" onClick={() => setCreando(true)}>
-          Nuevo episodio
+        <button type="button" className="pa-btn primario" onClick={() => setCreando(true)}>
+          + Nuevo episodio
         </button>
       </div>
 
@@ -153,25 +154,29 @@ export function EditorEpisodios({ serie, alCerrar }: Props) {
                         <td>{ep.numeroEpisodio}</td>
                         <td>{ep.titulo}</td>
                         <td>{ep.duracionMinutos ? `${ep.duracionMinutos} min` : '—'}</td>
-                        <td className="admin-estado">{ep.estadoProcesamiento}</td>
+                        <td>
+                          <span className={`pa-estado ${ep.estadoProcesamiento.toLowerCase()}`}>
+                            {ep.estadoProcesamiento}
+                          </span>
+                        </td>
                         <td className="admin-acciones">
                           <button
                             type="button"
-                            className="barra-btn"
+                            className="pa-btn"
                             onClick={() => setSubiendo(ep)}
                           >
                             {ep.hlsPlaylistUrl ? 'Reemplazar vídeo' : 'Subir vídeo'}
                           </button>
                           <button
                             type="button"
-                            className="barra-btn"
+                            className="pa-btn"
                             onClick={() => setEditando(ep)}
                           >
                             Editar
                           </button>
                           <button
                             type="button"
-                            className="barra-btn peligro"
+                            className="pa-btn peligro"
                             disabled={borrando === ep.id}
                             onClick={() => void borrar(ep)}
                           >
@@ -234,13 +239,11 @@ function FormularioEpisodio({
 
   return (
     <form className="admin-form" onSubmit={(e) => void enviar(e)}>
-      <div className="admin-form-cab">
-        <h2>{episodio ? 'Editar episodio' : 'Nuevo episodio'}</h2>
-        <button type="button" className="barra-btn" onClick={alCancelar}>
-          Cancelar
-        </button>
-      </div>
-
+      {/* Aquí sí hace falta: el armazón rotula la serie, no si se está dando
+          de alta un episodio o editando uno que ya existe. */}
+      <h2 className="admin-temporada-cab">
+        {episodio ? `Editar T${episodio.temporada}E${episodio.numeroEpisodio}` : 'Nuevo episodio'}
+      </h2>
       <div className="admin-campos">
         <label className="campo">
           <span>Temporada</span>
