@@ -361,6 +361,26 @@ bloqueará el login y los latidos de progreso.
 > el estado «SIN PORTADORA» del catálogo: es el comportamiento previsto cuando la
 > API no responde, no un fallo del despliegue.
 
+### «No es seguro» en la barra de direcciones
+
+El navegador marca así cualquier página con formulario de contraseña que no vaya
+por HTTPS. Dos causas, y solo una se arregla desde el código:
+
+**La API configurada en HTTP y el sitio en HTTPS.** El navegador bloquea esas
+llamadas por contenido mixto: la página se ve, pero no se puede entrar ni
+reproducir. Como `NEXT_PUBLIC_API_URL` se define en el panel del hosting, lejos
+del código, esto pasaba sin que nada avisara. Ahora el front lo detecta, sube la
+URL a HTTPS y deja un aviso en la consola; aun así, conviene corregir la variable
+en el despliegue.
+
+**Entrar por la IP de la red local** (`http://192.168.1.x:3001`) para probarlo
+desde el móvil o desde otro ordenador. Ahí no hay certificado y el aviso es
+correcto: se está enviando la contraseña en claro por la wifi. No se arregla
+desde el código. Para enseñárselo a alguien, o se usa la URL desplegada, que ya
+va por HTTPS, o se levanta un túnel (`npx localtunnel --port 3001` o `cloudflared
+tunnel --url http://localhost:3001`), que dan un dominio HTTPS temporal. Ojo:
+también hay que añadir ese dominio a `CORS_ORIGINS` de la API.
+
 ### Imágenes
 
 | Imagen | Tamaño | Notas |

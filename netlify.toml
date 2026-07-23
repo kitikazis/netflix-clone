@@ -24,6 +24,28 @@
   package = "@netlify/plugin-nextjs"
 
 # --------------------------------------------------------------------------
+# Cabeceras de seguridad
+# --------------------------------------------------------------------------
+# Un sitio con formulario de acceso y sin ninguna de estas cabeceras puntúa mal
+# en los análisis automáticos de reputación, y ahí es donde nacen los avisos de
+# "sitio peligroso" del navegador. Ninguna cambia el funcionamiento.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Solo por HTTPS, también en los subdominios. Evita el primer salto en claro,
+    # que es donde alguien podría colarse entre medias.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    # Que el navegador no adivine el tipo de un archivo: adivinar mal es una vía
+    # clásica para colar un script donde se esperaba una imagen.
+    X-Content-Type-Options = "nosniff"
+    # Nadie puede meter el sitio dentro de un iframe suyo y superponerle cosas.
+    X-Frame-Options = "DENY"
+    # Al salir hacia otra web no se le cuenta de qué página venías.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # No se usa ninguna de las tres, así que se deniegan en bloque.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# --------------------------------------------------------------------------
 # Variables que hay que definir en el panel de Netlify
 # --------------------------------------------------------------------------
 #
