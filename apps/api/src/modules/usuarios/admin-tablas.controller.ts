@@ -106,6 +106,42 @@ export class AdminTablasController {
       dto,
     );
   }
+
+  /**
+   * Vídeos subidos, con su procedencia.
+   *
+   * Se une por la izquierda con todo: una subida sobrevive al borrado de la
+   * cuenta que la hizo y del título al que se asignó, y sigue habiendo un
+   * archivo en el almacenamiento del que conviene saber de dónde salió. De ahí
+   * también el correo congelado en la propia fila.
+   */
+  @ApiOperation({ summary: 'Vídeos subidos: quién, cuándo y a qué título' })
+  @Get('subidas')
+  subidas(@Query() dto: ConsultarUsuariosDto) {
+    const filtro = dto.q
+      ? 'WHERE s.nombre_archivo ILIKE $1 OR s.subido_por_correo ILIKE $1 OR c.titulo ILIKE $1'
+      : '';
+    const params = dto.q ? [`%${escaparLike(dto.q)}%`] : [];
+    return this.paginado(
+      `SELECT s.id, s.nombre_archivo AS "nombreArchivo", s.clave,
+              s.tamano_bytes AS "tamanoBytes", s.fecha_creacion AS "fechaCreacion",
+              s.fecha_confirmacion AS "fechaConfirmacion",
+              COALESCE(u.correo, s.subido_por_correo) AS "subidoPor",
+              COALESCE(c.titulo, cs.titulo) AS "titulo",
+              CASE WHEN s.episodio_id IS NOT NULL
+                   THEN 'T' || e.temporada || 'E' || e.numero_episodio END AS "episodio"
+       FROM subidas_video s
+       LEFT JOIN usuarios u ON u.id = s.subido_por_id
+       LEFT JOIN contenido c ON c.id = s.contenido_id
+       LEFT JOIN episodios e ON e.id = s.episodio_id
+       LEFT JOIN contenido cs ON cs.id = e.contenido_id
+       ${filtro} ORDER BY s.fecha_creacion DESC`,
+      `SELECT count(*) AS total FROM subidas_video s
+       LEFT JOIN contenido c ON c.id = s.contenido_id ${filtro}`,
+      params,
+      dto,
+    );
+  }
 }
 
 /** `%` y `_` son comodines de LIKE: sin escaparlos, buscar "%" lo lista todo. */

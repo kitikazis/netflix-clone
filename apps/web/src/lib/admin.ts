@@ -243,7 +243,19 @@ export interface GeneroAdmin extends Genero {
   titulos: number;
 }
 
-export type TablaAdmin = 'perfiles' | 'episodios' | 'progreso' | 'generos';
+export interface SubidaAdmin {
+  id: string;
+  nombreArchivo: string;
+  clave: string;
+  tamanoBytes: string | null;
+  fechaCreacion: string;
+  fechaConfirmacion: string | null;
+  subidoPor: string | null;
+  titulo: string | null;
+  episodio: string | null;
+}
+
+export type TablaAdmin = 'perfiles' | 'episodios' | 'progreso' | 'generos' | 'subidas';
 
 export function listarTabla<T>(
   tabla: TablaAdmin,

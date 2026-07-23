@@ -7,7 +7,9 @@ import type {
   GeneroAdmin,
   PerfilAdmin,
   ProgresoAdmin,
+  SubidaAdmin,
 } from '@/lib/admin';
+import { formatearBytes } from '@/lib/subidas';
 
 const fecha = new Intl.DateTimeFormat('es', { dateStyle: 'medium' });
 
@@ -121,4 +123,40 @@ export const PanelProgreso = () => (
 
 export const PanelGeneros = () => (
   <PanelTabla tabla="generos" columnas={COLUMNAS_GENEROS} vacio="No hay géneros." />
+);
+
+const COLUMNAS_SUBIDAS: Array<Columna<SubidaAdmin>> = [
+  { cabecera: 'Archivo', celda: (s) => s.nombreArchivo },
+  {
+    cabecera: 'Tamaño',
+    celda: (s) => (s.tamanoBytes ? formatearBytes(Number(s.tamanoBytes)) : '—'),
+    rotulo: true,
+  },
+  { cabecera: 'Lo subió', celda: (s) => s.subidoPor ?? '(cuenta borrada)' },
+  {
+    cabecera: 'Usado en',
+    celda: (s) =>
+      s.titulo ? (s.episodio ? `${s.titulo} · ${s.episodio}` : s.titulo) : 'Sin asignar',
+  },
+  {
+    cabecera: 'Subido',
+    celda: (s) => fecha.format(new Date(s.fechaCreacion)),
+    rotulo: true,
+  },
+  {
+    // Sin confirmar significa que se pidió el destino pero los bytes nunca
+    // llegaron: una subida que se cortó a medias.
+    cabecera: 'Estado',
+    celda: (s) => (s.fechaConfirmacion ? 'Guardado' : 'Sin confirmar'),
+    rotulo: true,
+  },
+];
+
+export const PanelSubidas = () => (
+  <PanelTabla
+    tabla="subidas"
+    columnas={COLUMNAS_SUBIDAS}
+    placeholderBusqueda="Buscar por archivo, cuenta o título…"
+    vacio="Todavía no se ha subido ningún vídeo."
+  />
 );

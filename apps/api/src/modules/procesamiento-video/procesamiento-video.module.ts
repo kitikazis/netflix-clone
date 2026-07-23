@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { redisConfig, storageConfig } from '@/config';
 import { CatalogoModule } from '@/modules/catalogo/catalogo.module';
 import { COLA_TRANSCODIFICACION } from './transcodificacion.constants';
@@ -10,6 +11,8 @@ import { FfmpegService } from './ffmpeg.service';
 import { ProcesamientoVideoController } from './procesamiento-video.controller';
 import { SubidasController } from './subidas.controller';
 import { ALMACENAMIENTO } from './almacenamiento/almacenamiento';
+import { SubidaVideo } from './entities/subida-video.entity';
+import { SubidasService } from './subidas.service';
 import { AlmacenamientoLocal } from './almacenamiento/almacenamiento-local.service';
 import { AlmacenamientoR2 } from './almacenamiento/almacenamiento-r2.service';
 
@@ -20,6 +23,7 @@ import { AlmacenamientoR2 } from './almacenamiento/almacenamiento-r2.service';
  */
 @Module({
   imports: [
+    TypeOrmModule.forFeature([SubidaVideo]),
     CatalogoModule, // repos de Contenido/Episodio para actualizar el estado
     BullModule.forRootAsync({
       inject: [redisConfig.KEY],
@@ -41,6 +45,7 @@ import { AlmacenamientoR2 } from './almacenamiento/almacenamiento-r2.service';
     TranscodificacionService,
     TranscodificacionProcessor,
     FfmpegService,
+    SubidasService,
     AlmacenamientoLocal,
     AlmacenamientoR2,
     {
@@ -53,6 +58,6 @@ import { AlmacenamientoR2 } from './almacenamiento/almacenamiento-r2.service';
       ) => (config.driver === 'r2' ? r2 : local),
     },
   ],
-  exports: [TranscodificacionService, ALMACENAMIENTO],
+  exports: [TranscodificacionService, SubidasService, ALMACENAMIENTO],
 })
 export class ProcesamientoVideoModule {}

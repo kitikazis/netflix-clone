@@ -18,6 +18,7 @@ const SECCIONES: Array<{ href: string; etiqueta: string; icono: string }> = [
   { href: '/admin', etiqueta: 'Resumen', icono: '◫' },
   { href: '/admin/catalogo', etiqueta: 'Catálogo', icono: '▤' },
   { href: '/admin/episodios', etiqueta: 'Episodios', icono: '⋮⋮' },
+  { href: '/admin/subidas', etiqueta: 'Subidas', icono: '↑' },
   { href: '/admin/generos', etiqueta: 'Géneros', icono: '◇' },
   { href: '/admin/cuentas', etiqueta: 'Cuentas', icono: '○' },
   { href: '/admin/perfiles', etiqueta: 'Perfiles', icono: '◔' },

@@ -22,6 +22,7 @@ import {
 } from './transcodificacion.constants';
 import { PREFIJO_HLS } from './almacenamiento/subidas.constants';
 import { ALMACENAMIENTO, Almacenamiento } from './almacenamiento/almacenamiento';
+import { SubidasService } from './subidas.service';
 
 /** Cambios acotados a los campos del pipeline (compartidos por ambas entidades). */
 interface CambiosProcesamiento {
@@ -50,6 +51,7 @@ export class TranscodificacionService implements OnApplicationBootstrap {
     private readonly episodioRepo: Repository<Episodio>,
     @Inject(ALMACENAMIENTO)
     private readonly almacenamiento: Almacenamiento,
+    private readonly subidas: SubidasService,
   ) {}
 
   /**
@@ -221,6 +223,10 @@ export class TranscodificacionService implements OnApplicationBootstrap {
   }
 
   private async encolar(tipo: TipoActivo, activoId: string, claveOrigen: string) {
+    // Deja constancia de para qué se usó el archivo: sin esto, una subida solo
+    // se podía relacionar con su título mirando la clave a ojo.
+    await this.subidas.asignar(claveOrigen, tipo, activoId);
+
     await this.actualizar(tipo, activoId, {
       videoOrigenClave: claveOrigen,
       estadoProcesamiento: EstadoProcesamiento.EN_COLA,

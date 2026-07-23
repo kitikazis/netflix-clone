@@ -100,7 +100,16 @@ export function subirVideo(
         };
 
         xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) return resolver(destino.clave);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            // Se avisa a la API de que el archivo ya está. Va aparte porque los
+            // bytes no pasan por ella y, si no, no se enteraría nunca. Que falle
+            // no invalida la subida: solo deja la fila sin confirmar.
+            void peticionCuenta('/admin/subidas/confirmar', {
+              method: 'POST',
+              body: { clave: destino.clave, tamanoBytes: archivo.size },
+            }).catch(() => undefined);
+            return resolver(destino.clave);
+          }
           rechazar(new Error(explicar(xhr.status, propia)));
         };
 
