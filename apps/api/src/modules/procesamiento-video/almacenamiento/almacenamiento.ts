@@ -33,6 +33,15 @@ export interface Almacenamiento {
   /** Deja disponible el vídeo fuente (`claveOrigen`) como archivo local legible. */
   materializarOrigen(claveOrigen: string): Promise<OrigenMaterializado>;
 
+  /**
+   * ¿Sigue estando ahí el vídeo original?
+   *
+   * Se pregunta antes de reencolar una conversión que se quedó a medias: si el
+   * archivo ya no está, reintentar solo repetiría el mismo fallo en cada
+   * arranque. Es una comprobación barata, sin descargar el contenido.
+   */
+  existeOrigen(claveOrigen: string): Promise<boolean>;
+
   /** Publica el directorio HLS ya generado bajo un prefijo de destino. */
   publicarHls(dirLocal: string, destinoPrefijo: string): Promise<void>;
 

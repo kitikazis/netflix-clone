@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -20,6 +21,7 @@ import {
   TipoActivo,
 } from './transcodificacion.constants';
 import { PREFIJO_HLS } from './almacenamiento/subidas.constants';
+import { ALMACENAMIENTO, Almacenamiento } from './almacenamiento/almacenamiento';
 
 /** Cambios acotados a los campos del pipeline (compartidos por ambas entidades). */
 interface CambiosProcesamiento {
@@ -46,6 +48,8 @@ export class TranscodificacionService implements OnApplicationBootstrap {
     private readonly contenidoRepo: Repository<Contenido>,
     @InjectRepository(Episodio)
     private readonly episodioRepo: Repository<Episodio>,
+    @Inject(ALMACENAMIENTO)
+    private readonly almacenamiento: Almacenamiento,
   ) {}
 
   /**
@@ -99,12 +103,22 @@ export class TranscodificacionService implements OnApplicationBootstrap {
       for (const fila of colgados) {
         if (vivos.has(fila.id)) continue;
 
-        if (fila.videoOrigenClave) {
+        // Se comprueba que el original siga ahí antes de reencolar: si no está,
+        // reintentar solo repetiría el mismo fallo en cada arranque, para siempre.
+        const recuperable =
+          !!fila.videoOrigenClave &&
+          (await this.almacenamiento.existeOrigen(fila.videoOrigenClave));
+
+        if (recuperable) {
           this.logger.warn(`Retomando ${tipo} ${fila.id}: se quedó a medias`);
-          await this.encolar(tipo, fila.id, fila.videoOrigenClave);
+          await this.encolar(tipo, fila.id, fila.videoOrigenClave!);
         } else {
-          this.logger.warn(`${tipo} ${fila.id} quedó a medias y sin vídeo de origen`);
-          await this.fallar(tipo, fila.id, 'La conversión se interrumpió y no quedó el original');
+          this.logger.warn(`${tipo} ${fila.id} se quedó a medias y ya no está su original`);
+          await this.fallar(
+            tipo,
+            fila.id,
+            'La conversión se interrumpió y el vídeo original ya no está: hay que subirlo otra vez',
+          );
         }
       }
     }

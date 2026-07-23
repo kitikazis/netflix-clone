@@ -29,6 +29,15 @@ export class AlmacenamientoLocal implements Almacenamiento {
     this.publicPath = config.publicPath.replace(/\/+$/, '');
   }
 
+  async existeOrigen(claveOrigen: string): Promise<boolean> {
+    try {
+      await access(this.resolverDentro(this.sourceDir, claveOrigen));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async materializarOrigen(claveOrigen: string): Promise<OrigenMaterializado> {
     const rutaLocal = this.resolverDentro(this.sourceDir, claveOrigen);
     try {

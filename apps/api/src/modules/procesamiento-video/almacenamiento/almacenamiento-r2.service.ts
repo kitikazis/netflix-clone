@@ -13,7 +13,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { storageConfig } from '@/config';
 import { Almacenamiento, DestinoSubida, OrigenMaterializado } from './almacenamiento';
@@ -49,6 +54,17 @@ export class AlmacenamientoR2 implements Almacenamiento {
         forcePathStyle: this.config.forcePathStyle,
         credentials: { accessKeyId, secretAccessKey },
       });
+    }
+  }
+
+  async existeOrigen(claveOrigen: string): Promise<boolean> {
+    const { client, bucket } = this.exigirConfigurado();
+    try {
+      // HEAD: pregunta por los metadatos sin traerse el vídeo entero.
+      await client.send(new HeadObjectCommand({ Bucket: bucket, Key: claveOrigen }));
+      return true;
+    } catch {
+      return false;
     }
   }
 
