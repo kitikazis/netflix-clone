@@ -41,6 +41,14 @@ test.describe('reproductor', () => {
     const video = page.locator('video');
     await expect(video).toBeVisible();
 
+    // Los navegadores que trae Playwright se compilan sin los códecs con
+    // licencia, y H.264 es uno. Si este no puede con el formato, la prueba no
+    // tiene nada que decir del código: se salta en vez de dar un falso rojo.
+    const soportaH264 = await video.evaluate((v: HTMLVideoElement) =>
+      Boolean(v.canPlayType('video/mp4; codecs="avc1.42E01E"')),
+    );
+    test.skip(!soportaH264, 'este navegador de pruebas no trae el códec H.264');
+
     // Que el elemento exista no dice nada: hay que ver que le llegan datos.
     await expect
       .poll(() => video.evaluate((v: HTMLVideoElement) => v.readyState), {
@@ -64,7 +72,20 @@ test.describe('reproductor', () => {
    * variantes del manifiesto no se exponen. El vídeo se veía igual, así que
    * nada lo delataba: solo abrir el menú en un navegador de verdad lo saca.
    */
-  test('el menú ofrece las calidades del manifiesto', async ({ page }) => {
+  test('el menú ofrece las calidades del manifiesto', async ({ page, browserName }) => {
+    // WebKit no tiene Media Source Extensions, así que hls.js no puede
+    // funcionar y la reproducción va por la vía nativa: ahí la calidad la
+    // elige el sistema y no hay escalera que ofrecer. No es un fallo, es el
+    // otro camino; lo que se comprueba es que lo diga en vez de quedarse gris.
+    if (browserName === 'webkit') {
+      await page.goto(`/ver/${await slugReproducible(page)}`);
+      await abrirAjustes(page);
+      const fila = page.getByRole('menuitem', { name: /Calidad/ });
+      await expect(fila).toContainText('La ajusta el dispositivo');
+      await expect(fila).toBeDisabled();
+      return;
+    }
+
     await page.goto(`/ver/${await slugReproducible(page)}`);
     await expect(page.locator('video')).toBeVisible();
 
@@ -84,7 +105,11 @@ test.describe('reproductor', () => {
     await expect(page.getByText('máxima')).toBeVisible();
   });
 
-  test('fijar una calidad concreta la saca del modo automático', async ({ page }) => {
+  test('fijar una calidad concreta la saca del modo automático', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName === 'webkit', 'sin MSE no hay calidades que fijar');
     await page.goto(`/ver/${await slugReproducible(page)}`);
     await abrirAjustes(page);
     await page.getByRole('menuitem', { name: /Calidad/ }).click();

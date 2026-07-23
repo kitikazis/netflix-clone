@@ -123,6 +123,10 @@ a { color: inherit; }
   position: sticky; top: 0; z-index: 40;
   display: flex; align-items: center; gap: var(--e3);
   padding: var(--e2) var(--margen);
+  /* El color liso va primero como red: `color-mix` llegó en 2023 y un navegador
+     que no lo entienda descarta esa línea entera. Sin el respaldo, la cabecera
+     se quedaría transparente y el catálogo pasaría por debajo al desplazar. */
+  background: var(--papel);
   background: color-mix(in srgb, var(--papel) 92%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--filete-fuerte);

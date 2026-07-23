@@ -29,7 +29,21 @@ export default defineConfig({
     baseURL: BASE,
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  /**
+   * Los tres motores, no tres marcas: Chromium cubre Chrome, Edge, Opera y
+   * Brave; WebKit es Safari, y en iOS es el único que existe —hasta Chrome en
+   * iPhone es WebKit por dentro—; Firefox va por libre con Gecko.
+   *
+   * WebKit importa especialmente aquí: no tiene Media Source Extensions, así
+   * que hls.js no funciona y el reproductor cae a la reproducción nativa. Es un
+   * camino de código distinto y solo se ejerce probándolo.
+   */
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    { name: 'movil', use: { ...devices['iPhone 13'] } },
+  ],
   webServer: LOCAL
     ? { command: 'npm run dev', url: BASE, reuseExistingServer: true, timeout: 180_000 }
     : undefined,

@@ -73,8 +73,17 @@ export function MenuAjustes({
   }, [pagina, alCerrar]);
 
   const indiceMaximo = niveles.length - 1;
-  const resumenCalidad =
-    nivel === -1
+  /**
+   * Sin variantes es que se está reproduciendo por la vía nativa del navegador:
+   * Safari e iOS no tienen Media Source Extensions, así que hls.js no puede
+   * funcionar y el sistema elige la calidad por su cuenta. La fila se desactiva
+   * igual, pero diciendo por qué: en gris y sin explicación se lee como roto,
+   * que es justo lo que ya pasó una vez.
+   */
+  const sinControlDeCalidad = niveles.length === 0;
+  const resumenCalidad = sinControlDeCalidad
+    ? 'La ajusta el dispositivo'
+    : nivel === -1
       ? `Automática${nivelReal >= 0 ? ` (${etiquetaNivel(niveles[nivelReal])})` : ''}`
       : etiquetaNivel(niveles[nivel]);
   const resumenVelocidad = velocidad === 1 ? 'Normal' : `${velocidad}×`;
@@ -237,7 +246,7 @@ export function MenuAjustes({
         <Fila
           etiqueta="Calidad"
           valor={resumenCalidad}
-          desactivada={niveles.length === 0}
+          desactivada={sinControlDeCalidad}
           onClick={() => setPagina('calidad')}
         />
       </div>
