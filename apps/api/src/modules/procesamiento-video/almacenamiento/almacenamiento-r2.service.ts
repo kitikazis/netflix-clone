@@ -24,6 +24,9 @@ import { storageConfig } from '@/config';
 import { Almacenamiento, DestinoSubida, OrigenMaterializado } from './almacenamiento';
 import { construirClaveOrigen, sanitizarNombreArchivo } from './subidas.constants';
 
+/** Subidas simultáneas al publicar el HLS (ver `publicarHls`). */
+const SUBIDAS_EN_PARALELO = 6;
+
 /**
  * Implementación de {@link Almacenamiento} sobre Cloudflare R2 (API S3).
  * - Origen: descarga el objeto a un archivo temporal para que ffmpeg lo lea.
@@ -86,22 +89,49 @@ export class AlmacenamientoR2 implements Almacenamiento {
     return { rutaLocal, limpiar: () => rm(dir, { recursive: true, force: true }) };
   }
 
+  /**
+   * Publica el HLS subiendo varios archivos a la vez.
+   *
+   * Cada subida cuesta unos 0,6 s casi enteros de ida y vuelta, no de ancho de
+   * banda: un trozo pesa menos de un mega. Encadenadas de una en una, una
+   * película de dos horas en tres calidades son unos 1200 trozos y cerca de
+   * trece minutos esperando a la red. De seis en seis baja a algo más de dos.
+   *
+   * Seis y no más porque el contenedor tiene 512 MB y cada subida en vuelo
+   * mantiene su archivo en memoria; con la escalera actual eso son unos 12 MB,
+   * que caben de sobra.
+   */
   async publicarHls(dirLocal: string, destinoPrefijo: string): Promise<void> {
     const { client, bucket } = this.exigirConfigurado();
     const entradas = await readdir(dirLocal);
 
+    const archivos: string[] = [];
     for (const nombre of entradas) {
-      const abs = join(dirLocal, nombre);
-      if (!(await stat(abs)).isFile()) continue;
+      if ((await stat(join(dirLocal, nombre))).isFile()) archivos.push(nombre);
+    }
+
+    const subir = async (nombre: string) => {
       await client.send(
         new PutObjectCommand({
           Bucket: bucket,
           Key: `${destinoPrefijo}/${nombre}`,
-          Body: await readFile(abs),
+          Body: await readFile(join(dirLocal, nombre)),
           ContentType: this.tipoContenido(nombre),
         }),
       );
-    }
+    };
+
+    // Seis obreros tirando de la misma lista: cada uno coge el siguiente en
+    // cuanto termina, así ninguno se queda parado esperando a los demás.
+    let siguiente = 0;
+    const obrero = async () => {
+      while (siguiente < archivos.length) {
+        await subir(archivos[siguiente++]);
+      }
+    };
+    await Promise.all(
+      Array.from({ length: Math.min(SUBIDAS_EN_PARALELO, archivos.length) }, obrero),
+    );
   }
 
   urlPublica(clave: string): string {

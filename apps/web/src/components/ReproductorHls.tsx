@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Hls, { type Level } from 'hls.js';
+import type HlsJs from 'hls.js';
+import type { Level } from 'hls.js';
 import { guardarProgreso, obtenerPosicion, useSesion } from '@/lib/sesion';
 import { Controles } from './reproductor/Controles';
 import { HaloAmbiental } from './reproductor/HaloAmbiental';
@@ -58,7 +59,7 @@ export function ReproductorHls({
   // elemento existe, y un ref no dispara render.
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
   const [contenedorEl, setContenedorEl] = useState<HTMLDivElement | null>(null);
-  const hlsRef = useRef<Hls | null>(null);
+  const hlsRef = useRef<HlsJs | null>(null);
   const posicionInicial = useRef(0);
 
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +83,33 @@ export function ReproductorHls({
     setNiveles([]);
     setNivel(-1);
 
-    let hls: Hls | null = null;
+    let hls: HlsJs | null = null;
+    let cancelado = false;
+
+    /**
+     * hls.js se descarga solo cuando puede servir de algo.
+     *
+     * Son 164 KB, más que todo el resto de la página junta, y en iPhone no se
+     * usan jamás: sin Media Source Extensions la librería no puede funcionar y
+     * la reproducción va por la vía nativa. Se comprueba `MediaSource` —no
+     * `canPlayType`— porque varios navegadores basados en Chromium dicen saber
+     * reproducir HLS de forma nativa, y fiarse de eso es justo lo que dejaba el
+     * selector de calidad en gris.
+     */
+    const hayMse =
+      typeof window !== 'undefined' &&
+      (typeof window.MediaSource !== 'undefined' ||
+        typeof (window as { WebKitMediaSource?: unknown }).WebKitMediaSource !== 'undefined');
+
+    if (!hayMse) {
+      if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari e iOS: la calidad la gestiona el sistema, no hay escalera.
+        video.src = src;
+      } else {
+        setError('Tu navegador no soporta HLS');
+      }
+      return;
+    }
 
     /**
      * hls.js tiene prioridad sobre la reproducción nativa.
@@ -97,7 +124,12 @@ export function ReproductorHls({
      * que lo soportan, y el camino nativo queda para Safari e iOS, donde
      * hls.js no funciona porque no hay Media Source Extensions.
      */
-    if (Hls.isSupported()) {
+    void (async () => {
+      const { default: Hls } = await import('hls.js');
+      // El componente pudo desmontarse mientras se descargaba la librería.
+      if (cancelado) return;
+
+      if (Hls.isSupported()) {
       hls = new Hls({ enableWorker: true });
       hlsRef.current = hls;
 
@@ -125,15 +157,16 @@ export function ReproductorHls({
 
       hls.loadSource(src);
       hls.attachMedia(video);
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari e iOS: sin MSE, hls.js no puede funcionar. La calidad la
-      // gestiona el sistema y no hay escalera que ofrecer.
-      video.src = src;
-    } else {
-      setError('Tu navegador no soporta HLS');
-    }
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Hay MSE pero hls.js se declara incompatible: queda la vía nativa.
+        video.src = src;
+      } else {
+        setError('Tu navegador no soporta HLS');
+      }
+    })();
 
     return () => {
+      cancelado = true;
       hls?.destroy();
       hlsRef.current = null;
     };
