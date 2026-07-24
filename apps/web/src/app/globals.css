@@ -826,6 +826,7 @@ th[aria-sort]:not([aria-sort='none']) .pa-orden { color: var(--tinta); }
   white-space: nowrap;
 }
 .pa-origen.google { color: #6aa1e0; border-color: #2f4a68; }
+.pa-origen.whatsapp { color: #3fae61; border-color: #2c5a3c; }
 
 /* ---------- Tarjetas de cifras ---------- */
 .pa-tarjetas {

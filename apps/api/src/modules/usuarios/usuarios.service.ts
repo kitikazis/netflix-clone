@@ -24,12 +24,17 @@ export class UsuariosService {
       .getOne();
   }
 
+  buscarPorTelefono(telefono: string): Promise<Usuario | null> {
+    return this.repo.findOne({ where: { telefono } });
+  }
+
   buscarPorId(id: string): Promise<Usuario | null> {
     return this.repo.findOne({ where: { id } });
   }
 
   crear(datos: {
-    correo: string;
+    correo?: string | null;
+    telefono?: string | null;
     contrasenaHash: string | null;
     nombre?: string | null;
     fotoUrl?: string | null;

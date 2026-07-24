@@ -11,6 +11,7 @@ import { TokensService } from './tokens.service';
 import { RegistroDto } from './dto/registro.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleService } from './google.service';
+import { WhatsAppService } from './whatsapp/whatsapp.service';
 
 @Injectable()
 export class AutenticacionService {
@@ -20,6 +21,7 @@ export class AutenticacionService {
     private readonly tokens: TokensService,
     private readonly hash: HashService,
     private readonly google: GoogleService,
+    private readonly whatsapp: WhatsAppService,
   ) {}
 
   async registro(dto: RegistroDto) {
@@ -36,7 +38,7 @@ export class AutenticacionService {
 
     const tokens = await this.tokens.generarPar({
       sub: usuario.id,
-      correo: usuario.correo,
+      correo: usuario.correo ?? usuario.telefono ?? '',
       rol: usuario.rol,
     });
 
@@ -63,7 +65,7 @@ export class AutenticacionService {
     const [tokens, perfiles] = await Promise.all([
       this.tokens.generarPar({
         sub: usuario.id,
-        correo: usuario.correo,
+        correo: usuario.correo ?? usuario.telefono ?? '',
         rol: usuario.rol,
       }),
       this.perfiles.listarDeUsuario(usuario.id),
@@ -129,7 +131,43 @@ export class AutenticacionService {
 
     const tokens = await this.tokens.generarPar({
       sub: usuario.id,
-      correo: usuario.correo,
+      correo: usuario.correo ?? usuario.telefono ?? '',
+      rol: usuario.rol,
+    });
+
+    return { usuario: this.aPublico(usuario), perfiles, tokens };
+  }
+
+  /**
+   * Entra por WhatsApp: verifica el código y crea la cuenta si no existe.
+   *
+   * El teléfono ya viene comprobado desde el servicio de código, así que aquí
+   * solo se busca o se crea la cuenta a partir de él. Como la de Google, nace
+   * sin contraseña: la identidad la respalda haber recibido el código.
+   */
+  async entrarConWhatsApp(telefono: string, codigo: string) {
+    const { telefono: verificado } = await this.whatsapp.verificar(telefono, codigo);
+
+    let usuario = await this.usuarios.buscarPorTelefono(verificado);
+    let perfiles: Perfil[];
+
+    if (usuario) {
+      if (!usuario.activo) {
+        throw new UnauthorizedException('Cuenta no disponible');
+      }
+      perfiles = await this.perfiles.listarDeUsuario(usuario.id);
+    } else {
+      usuario = await this.usuarios.crear({
+        telefono: verificado,
+        contrasenaHash: null,
+        proveedor: ProveedorRegistro.WHATSAPP,
+      });
+      perfiles = [await this.perfiles.crear(usuario.id, { nombre: 'Mi perfil' })];
+    }
+
+    const tokens = await this.tokens.generarPar({
+      sub: usuario.id,
+      correo: usuario.correo ?? usuario.telefono ?? '',
       rol: usuario.rol,
     });
 
@@ -164,7 +202,7 @@ export class AutenticacionService {
 
     const tokens = await this.tokens.generarPar({
       sub: usuario.id,
-      correo: usuario.correo,
+      correo: usuario.correo ?? usuario.telefono ?? '',
       rol: usuario.rol,
     });
     return { tokens };

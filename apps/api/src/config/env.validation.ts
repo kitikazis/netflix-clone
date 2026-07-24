@@ -173,6 +173,24 @@ export class EnvironmentVariables {
   @Min(60)
   @Max(3600)
   R2_PRESIGN_EXPIRES?: number;
+
+  // ---- Entrar por WhatsApp (Meta Cloud API). Todo opcional: sin token ni
+  // phoneId, el envío queda en modo desarrollo (código al log). ----
+  @IsOptional()
+  @IsString()
+  WHATSAPP_TOKEN?: string;
+
+  @IsOptional()
+  @IsString()
+  WHATSAPP_PHONE_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  WHATSAPP_TEMPLATE?: string;
+
+  @IsOptional()
+  @IsString()
+  WHATSAPP_LANG?: string;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {

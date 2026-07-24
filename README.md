@@ -265,6 +265,26 @@ comprobación lo vio, porque todas miraban respuestas HTTP y ninguna llegaba a
 ejecutar hls.js en un navegador. El vídeo se veía; solo abrir el menú lo
 delataba.
 
+## Entrar por WhatsApp
+
+Código de un solo uso por WhatsApp (Meta Cloud API). El envío está desacoplado:
+
+- Sin `WHATSAPP_TOKEN` ni `WHATSAPP_PHONE_ID`, arranca en **modo desarrollo** y el
+  código se registra en el log en vez de enviarse — permite probar el flujo entero
+  sin cuenta de Meta.
+- Con esas dos variables, envía de verdad usando una plantilla de la categoría
+  «autenticación» (`WHATSAPP_TEMPLATE`, idioma `WHATSAPP_LANG`).
+
+El código no se guarda en claro: en Redis solo queda su hash, con caducidad
+(`WHATSAPP_CODIGO_TTL_MIN`). Cada verificación fallida cuenta y, agotados los
+intentos (`WHATSAPP_MAX_INTENTOS`), el código se invalida; entre solicitudes hay
+una espera (`WHATSAPP_ESPERA_REENVIO_S`) para no gastar cupo ni acosar a un número.
+El endpoint de solicitud responde siempre igual, sin revelar si el número tiene
+cuenta.
+
+El botón del front se activa con `NEXT_PUBLIC_AUTH_WHATSAPP=true`. Para que envíe
+de verdad hacen falta, además, las variables de Meta en la API.
+
 ## Despliegue
 
 Las dos apps van en imágenes propias, con Postgres y Redis al lado. El contexto de

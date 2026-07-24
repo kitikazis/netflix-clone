@@ -9,9 +9,15 @@ import { Perfil } from './perfil.entity';
  */
 @Entity('usuarios')
 export class Usuario extends EntidadBase {
+  // Único, pero opcional: una cuenta de WhatsApp no tiene correo.
   @Index({ unique: true })
-  @Column({ type: 'varchar', length: 255 })
-  correo: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  correo: string | null;
+
+  /** Teléfono en formato internacional (+51999…). Solo en cuentas de WhatsApp. */
+  @Index({ unique: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  telefono: string | null;
 
   /**
    * Nunca se selecciona por defecto: hay que pedirlo explícitamente (addSelect).

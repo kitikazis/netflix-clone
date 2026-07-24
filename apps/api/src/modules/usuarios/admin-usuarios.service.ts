@@ -11,7 +11,9 @@ import { ActualizarUsuarioDto } from './dto/actualizar-usuario.dto';
 /** Fila del listado de administración: la cuenta más su número de perfiles. */
 export interface UsuarioAdmin {
   id: string;
-  correo: string;
+  /** Uno de los dos según cómo se registró; el otro va en null. */
+  correo: string | null;
+  telefono: string | null;
   /** Nombre y foto solo los hay si se registró con un proveedor externo. */
   nombre: string | null;
   fotoUrl: string | null;
@@ -66,6 +68,7 @@ export class AdminUsuariosService {
     const datos = filas.map((u) => ({
       id: u.id,
       correo: u.correo,
+      telefono: u.telefono,
       nombre: u.nombre,
       fotoUrl: u.fotoUrl,
       proveedor: u.proveedor,
@@ -112,6 +115,7 @@ export class AdminUsuariosService {
     return {
       id: usuario.id,
       correo: usuario.correo,
+      telefono: usuario.telefono,
       nombre: usuario.nombre,
       fotoUrl: usuario.fotoUrl,
       proveedor: usuario.proveedor,

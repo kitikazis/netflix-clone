@@ -5,6 +5,7 @@ import { PerfilesService } from '@/modules/usuarios/perfiles.service';
 import { TokensService } from './tokens.service';
 import { HashService } from './hash.service';
 import { GoogleService } from './google.service';
+import { WhatsAppService } from './whatsapp/whatsapp.service';
 
 type Mock<T> = { [K in keyof T]: jest.Mock };
 
@@ -16,6 +17,7 @@ describe('AutenticacionService', () => {
   let hash: Mock<HashService>;
   // Solo `verificar`: es lo único que el servicio le pide.
   let google: { verificar: jest.Mock };
+  let whatsapp: { verificar: jest.Mock; disponible: boolean };
 
   const parTokens = { accessToken: 'access.jwt', refreshToken: 'refresh.jwt' };
   const usuarioMock = {
@@ -30,6 +32,7 @@ describe('AutenticacionService', () => {
       buscarPorCorreo: jest.fn(),
       buscarPorCorreoConHash: jest.fn(),
       buscarPorId: jest.fn(),
+      buscarPorTelefono: jest.fn(),
       crear: jest.fn(),
       completarDesdeProveedor: jest.fn(),
     };
@@ -56,6 +59,8 @@ describe('AutenticacionService', () => {
     // La verificación del token de Google tiene su propia suite; aquí solo se
     // necesita que la dependencia exista.
     google = { verificar: jest.fn() };
+    // El servicio de WhatsApp tiene su propia suite; aquí basta con que exista.
+    whatsapp = { verificar: jest.fn(), disponible: true };
 
     service = new AutenticacionService(
       usuarios as unknown as UsuariosService,
@@ -63,6 +68,7 @@ describe('AutenticacionService', () => {
       tokens as unknown as TokensService,
       hash as unknown as HashService,
       google as unknown as GoogleService,
+      whatsapp as unknown as WhatsAppService,
     );
   });
 

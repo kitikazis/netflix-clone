@@ -57,6 +57,26 @@ export const googleConfig = registerAs('google', () => ({
   clientId: process.env.GOOGLE_CLIENT_ID,
 }));
 
+/**
+ * Entrada por WhatsApp (Meta Cloud API).
+ *
+ * Con `token` y `phoneId` presentes se manda de verdad; sin ellos, el código se
+ * registra en el log y no sale ningún mensaje, para poder probar el flujo entero
+ * sin cuenta de Meta. `template` es el nombre de la plantilla de autenticación
+ * aprobada en Meta; su idioma va en `lang`.
+ */
+export const whatsappConfig = registerAs('whatsapp', () => ({
+  token: process.env.WHATSAPP_TOKEN,
+  phoneId: process.env.WHATSAPP_PHONE_ID,
+  template: process.env.WHATSAPP_TEMPLATE ?? 'codigo_acceso',
+  lang: process.env.WHATSAPP_LANG ?? 'es',
+  apiVersion: process.env.WHATSAPP_API_VERSION ?? 'v21.0',
+  // Minutos que vale un código y segundos de espera entre reenvíos.
+  codigoTtlMin: parseInt(process.env.WHATSAPP_CODIGO_TTL_MIN ?? '5', 10),
+  esperaReenvioS: parseInt(process.env.WHATSAPP_ESPERA_REENVIO_S ?? '60', 10),
+  maxIntentos: parseInt(process.env.WHATSAPP_MAX_INTENTOS ?? '5', 10),
+}));
+
 export const jwtConfig = registerAs('jwt', () => ({
   accessSecret: process.env.JWT_ACCESS_SECRET as string,
   refreshSecret: process.env.JWT_REFRESH_SECRET as string,
@@ -112,6 +132,7 @@ export const configurations = [
   redisConfig,
   jwtConfig,
   googleConfig,
+  whatsappConfig,
   mediaConfig,
   storageConfig,
 ];

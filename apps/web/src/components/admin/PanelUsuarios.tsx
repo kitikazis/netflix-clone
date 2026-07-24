@@ -121,16 +121,18 @@ export function PanelUsuarios() {
                 <tr key={u.id}>
                   <td data-etiqueta="Cuenta">
                     <div className="cuenta">
-                      <Avatar url={u.fotoUrl} nombre={u.nombre ?? u.correo} />
+                      <Avatar url={u.fotoUrl} nombre={u.nombre ?? u.correo ?? u.telefono ?? '?'} />
                       <div className="cuenta-txt">
                         {u.nombre && <span className="cuenta-nombre">{u.nombre}</span>}
-                        <span className="cuenta-correo">{u.correo}</span>
+                        <span className="cuenta-correo">
+                          {u.correo ?? u.telefono ?? '—'}
+                        </span>
                       </div>
                     </div>
                   </td>
                   <td data-etiqueta="Registro">
                     <span className={`pa-origen ${u.proveedor.toLowerCase()}`}>
-                      {u.proveedor === 'GOOGLE' ? 'Google' : 'Correo'}
+                      {{ GOOGLE: 'Google', WHATSAPP: 'WhatsApp', LOCAL: 'Correo' }[u.proveedor]}
                     </span>
                   </td>
                   <td>

@@ -8,4 +8,5 @@
 export enum ProveedorRegistro {
   LOCAL = 'LOCAL',
   GOOGLE = 'GOOGLE',
+  WHATSAPP = 'WHATSAPP',
 }

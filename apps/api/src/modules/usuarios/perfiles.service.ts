@@ -16,7 +16,7 @@ export class PerfilesService {
    * El modelo sigue admitiendo varios —el progreso cuelga del perfil, no de la
    * cuenta— así que subir este número vuelve a habilitarlos sin tocar nada más.
    */
-  private readonly maxPerfiles = 1;
+  private readonly maxPerfiles: number = 1;
 
   constructor(
     @InjectRepository(Perfil)
