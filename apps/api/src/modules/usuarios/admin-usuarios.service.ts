@@ -5,12 +5,17 @@ import { paginar, PaginacionDto, ResultadoPaginado } from '@/common/dto/paginaci
 import { Usuario } from './entities/usuario.entity';
 import { Perfil } from './entities/perfil.entity';
 import { RolUsuario } from './enums/rol-usuario.enum';
+import { ProveedorRegistro } from './enums/proveedor-registro.enum';
 import { ActualizarUsuarioDto } from './dto/actualizar-usuario.dto';
 
 /** Fila del listado de administración: la cuenta más su número de perfiles. */
 export interface UsuarioAdmin {
   id: string;
   correo: string;
+  /** Nombre y foto solo los hay si se registró con un proveedor externo. */
+  nombre: string | null;
+  fotoUrl: string | null;
+  proveedor: ProveedorRegistro;
   rol: RolUsuario;
   activo: boolean;
   fechaCreacion: Date;
@@ -42,13 +47,17 @@ export class AdminUsuariosService {
       .take(dto.limite);
 
     if (q) {
-      qb.where('u.correo ILIKE :q', { q: `%${escaparLike(q)}%` });
+      // También por nombre: con Google, el correo puede no decir quién es.
+      qb.where('u.correo ILIKE :q OR u.nombre ILIKE :q', { q: `%${escaparLike(q)}%` });
     }
 
     const [filas, total] = await qb.getManyAndCount();
     const datos = filas.map((u) => ({
       id: u.id,
       correo: u.correo,
+      nombre: u.nombre,
+      fotoUrl: u.fotoUrl,
+      proveedor: u.proveedor,
       rol: u.rol,
       activo: u.activo,
       fechaCreacion: u.fechaCreacion,
@@ -90,6 +99,9 @@ export class AdminUsuariosService {
     return {
       id: usuario.id,
       correo: usuario.correo,
+      nombre: usuario.nombre,
+      fotoUrl: usuario.fotoUrl,
+      proveedor: usuario.proveedor,
       rol: usuario.rol,
       activo: usuario.activo,
       fechaCreacion: usuario.fechaCreacion,

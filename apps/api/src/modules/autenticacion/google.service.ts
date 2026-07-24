@@ -12,6 +12,7 @@ import { googleConfig } from '@/config';
 export interface IdentidadGoogle {
   correo: string;
   nombre?: string;
+  fotoUrl?: string;
 }
 
 /**
@@ -73,6 +74,10 @@ export class GoogleService {
       throw new UnauthorizedException('Google no ha verificado ese correo');
     }
 
-    return { correo: payload.email.toLowerCase(), nombre: payload.name };
+    return {
+      correo: payload.email.toLowerCase(),
+      nombre: payload.name,
+      fotoUrl: payload.picture,
+    };
   }
 }

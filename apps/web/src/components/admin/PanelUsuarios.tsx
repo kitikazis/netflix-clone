@@ -107,7 +107,8 @@ export function PanelUsuarios() {
           <table className="admin-tabla">
             <thead>
               <tr>
-                <th>Correo</th>
+                <th>Cuenta</th>
+                <th>Registro</th>
                 <th>Rol</th>
                 <th>Perfiles</th>
                 <th>Alta</th>
@@ -118,7 +119,20 @@ export function PanelUsuarios() {
             <tbody>
               {items.map((u) => (
                 <tr key={u.id}>
-                  <td>{u.correo}</td>
+                  <td>
+                    <div className="cuenta">
+                      <Avatar url={u.fotoUrl} nombre={u.nombre ?? u.correo} />
+                      <div className="cuenta-txt">
+                        {u.nombre && <span className="cuenta-nombre">{u.nombre}</span>}
+                        <span className="cuenta-correo">{u.correo}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`pa-origen ${u.proveedor.toLowerCase()}`}>
+                      {u.proveedor === 'GOOGLE' ? 'Google' : 'Correo'}
+                    </span>
+                  </td>
                   <td>
                     <span className={u.rol === 'ADMIN' ? 'admin-marca' : ''}>
                       {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
@@ -190,5 +204,44 @@ export function PanelUsuarios() {
         </nav>
       )}
     </>
+  );
+}
+
+/**
+ * Foto de la cuenta, o sus iniciales si no la hay.
+ *
+ * Va con `<img>` normal y no con el componente de Next a propósito: las fotos
+ * de Google viven en dominios que cambian y habría que autorizarlos uno a uno
+ * en la configuración; por una miniatura de 32 px no compensa. Si la imagen
+ * falla —Google a veces las retira— se cae a las iniciales en vez de dejar el
+ * hueco roto.
+ */
+function Avatar({ url, nombre }: { url: string | null; nombre: string }) {
+  const [roto, setRoto] = useState(false);
+  const iniciales = nombre
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('');
+
+  if (!url || roto) {
+    return (
+      <span className="avatar avatar-letras" aria-hidden>
+        {iniciales || '?'}
+      </span>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className="avatar"
+      src={url}
+      alt=""
+      width={32}
+      height={32}
+      referrerPolicy="no-referrer"
+      onError={() => setRoto(true)}
+    />
   );
 }

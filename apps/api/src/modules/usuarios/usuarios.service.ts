@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from './entities/usuario.entity';
+import { ProveedorRegistro } from './enums/proveedor-registro.enum';
 
 @Injectable()
 export class UsuariosService {
@@ -27,7 +28,13 @@ export class UsuariosService {
     return this.repo.findOne({ where: { id } });
   }
 
-  crear(datos: { correo: string; contrasenaHash: string | null }): Promise<Usuario> {
+  crear(datos: {
+    correo: string;
+    contrasenaHash: string | null;
+    nombre?: string | null;
+    fotoUrl?: string | null;
+    proveedor?: ProveedorRegistro;
+  }): Promise<Usuario> {
     const usuario = this.repo.create(datos);
     return this.repo.save(usuario);
   }

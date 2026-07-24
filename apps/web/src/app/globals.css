@@ -721,6 +721,31 @@ a { color: inherit; }
 .ev-parado { display: flex; align-items: center; gap: 0.5rem; }
 .ev-parado .pa-btn { padding: 0.2rem 0.5rem; }
 
+/* ---------- Cuenta: foto, nombre y origen ---------- */
+.cuenta { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+.cuenta-txt { display: flex; flex-direction: column; min-width: 0; }
+.cuenta-nombre { font-weight: 500; }
+.cuenta-correo {
+  font-size: var(--t-xs); color: var(--tinta-media);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.avatar {
+  width: 2rem; height: 2rem; border-radius: 50%; flex-shrink: 0;
+  object-fit: cover; background: var(--papel-hueco);
+}
+/* Cuando no hay foto, las iniciales: mejor que un hueco gris. */
+.avatar-letras {
+  display: grid; place-items: center;
+  font-size: var(--t-xs); font-weight: 600; color: var(--tinta-media);
+  border: 1px solid var(--filete);
+}
+.pa-origen {
+  display: inline-block; padding: 0.1rem 0.45rem; border-radius: 999px;
+  font-size: var(--t-xs); border: 1px solid var(--filete); color: var(--tinta-media);
+  white-space: nowrap;
+}
+.pa-origen.google { color: #6aa1e0; border-color: #2f4a68; }
+
 /* ---------- Tarjetas de cifras ---------- */
 .pa-tarjetas {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));

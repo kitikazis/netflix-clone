@@ -154,6 +154,10 @@ function limpiar<T extends object>(datos: T): Partial<T> {
 export interface UsuarioAdmin {
   id: string;
   correo: string;
+  /** Nombre y foto solo existen si la cuenta viene de un proveedor externo. */
+  nombre: string | null;
+  fotoUrl: string | null;
+  proveedor: 'LOCAL' | 'GOOGLE';
   rol: 'USUARIO' | 'ADMIN';
   activo: boolean;
   fechaCreacion: string;

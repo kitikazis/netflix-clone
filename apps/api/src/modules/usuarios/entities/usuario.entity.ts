@@ -1,6 +1,7 @@
 import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { EntidadBase } from '@/common/entities/entidad-base';
 import { RolUsuario } from '../enums/rol-usuario.enum';
+import { ProveedorRegistro } from '../enums/proveedor-registro.enum';
 import { Perfil } from './perfil.entity';
 
 /**
@@ -21,6 +22,22 @@ export class Usuario extends EntidadBase {
    */
   @Column({ type: 'varchar', length: 255, select: false, nullable: true })
   contrasenaHash: string | null;
+
+  /** Nombre tal y como lo da el proveedor; nulo si se registró con correo. */
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  nombre: string | null;
+
+  /** Foto del proveedor. Se guarda la URL, no la imagen: es suya y ya la sirve. */
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  fotoUrl: string | null;
+
+  @Column({
+    type: 'enum',
+    enum: ProveedorRegistro,
+    enumName: 'proveedor_registro',
+    default: ProveedorRegistro.LOCAL,
+  })
+  proveedor: ProveedorRegistro;
 
   @Column({
     type: 'enum',

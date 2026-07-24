@@ -4,6 +4,7 @@ import { PerfilesService } from '@/modules/usuarios/perfiles.service';
 import { Usuario } from '@/modules/usuarios/entities/usuario.entity';
 import { Perfil } from '@/modules/usuarios/entities/perfil.entity';
 import { RolUsuario } from '@/modules/usuarios/enums/rol-usuario.enum';
+import { ProveedorRegistro } from '@/modules/usuarios/enums/proveedor-registro.enum';
 import { RefreshTokenPayload } from '@/common/interfaces/token-payload.interface';
 import { HashService } from './hash.service';
 import { TokensService } from './tokens.service';
@@ -96,10 +97,16 @@ export class AutenticacionService {
       usuario = await this.usuarios.crear({
         correo: identidad.correo,
         contrasenaHash: null,
+        nombre: identidad.nombre ?? null,
+        fotoUrl: identidad.fotoUrl ?? null,
+        proveedor: ProveedorRegistro.GOOGLE,
       });
+      // El perfil hereda el nombre de pila y la foto de Google: llegar y
+      // encontrarse «Perfil 1» con un avatar vacío no le dice nada a nadie.
       perfiles = [
         await this.perfiles.crear(usuario.id, {
-          nombre: identidad.nombre?.split(' ')[0] || 'Perfil 1',
+          nombre: primerNombre(identidad.nombre) ?? 'Mi perfil',
+          avatarUrl: identidad.fotoUrl,
         }),
       ];
     }
@@ -173,4 +180,16 @@ export class AutenticacionService {
     const { contrasenaHash: _omitido, ...publico } = usuario;
     return publico;
   }
+}
+
+/**
+ * Nombre de pila para el perfil.
+ *
+ * Google devuelve el nombre completo y en la pantalla de perfiles solo cabe
+ * uno corto. Se recorta a 100 caracteres porque es lo que admite la columna:
+ * hay nombres compuestos largos y sería una pena caerse por eso.
+ */
+function primerNombre(completo?: string): string | undefined {
+  const pila = completo?.trim().split(/\s+/)[0];
+  return pila ? pila.slice(0, 100) : undefined;
 }
