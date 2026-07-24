@@ -118,7 +118,7 @@ export class AutenticacionService {
       // encontrarse «Perfil 1» con un avatar vacío no le dice nada a nadie.
       perfiles = [
         await this.perfiles.crear(usuario.id, {
-          nombre: primerNombre(identidad.nombre) ?? 'Mi perfil',
+          nombre: primerNombre(identidad.nombrePila ?? identidad.nombre) ?? 'Mi perfil',
           avatarUrl: identidad.fotoUrl,
         }),
       ];
@@ -198,9 +198,10 @@ export class AutenticacionService {
 /**
  * Nombre de pila para el perfil.
  *
- * Google devuelve el nombre completo y en la pantalla de perfiles solo cabe
- * uno corto. Se recorta a 100 caracteres porque es lo que admite la columna:
- * hay nombres compuestos largos y sería una pena caerse por eso.
+ * Se prefiere el `given_name` que da Google, que ya es el nombre de pila; solo
+ * si falta se parte el completo por el primer espacio, que se equivoca con los
+ * nombres compuestos. Se recorta a 100 caracteres, que es lo que admite la
+ * columna.
  */
 function primerNombre(completo?: string): string | undefined {
   const pila = completo?.trim().split(/\s+/)[0];

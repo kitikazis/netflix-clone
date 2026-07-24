@@ -11,7 +11,10 @@ import { googleConfig } from '@/config';
 /** Lo poco que se usa del token de Google, ya validado. */
 export interface IdentidadGoogle {
   correo: string;
+  /** Nombre completo, tal y como lo tiene en Google. */
   nombre?: string;
+  /** Nombre de pila. Google lo da aparte, sin tener que adivinarlo partiendo. */
+  nombrePila?: string;
   fotoUrl?: string;
 }
 
@@ -74,9 +77,16 @@ export class GoogleService {
       throw new UnauthorizedException('Google no ha verificado ese correo');
     }
 
+    /**
+     * `name`, `given_name` y `picture` son OPCIONALES en el token: solo llegan
+     * si la aplicación tiene concedido el permiso de perfil. Sin él, Google
+     * manda únicamente el correo y aquí no hay nada que hacer —el permiso se
+     * declara en la pantalla de consentimiento, no se pide desde el código—.
+     */
     return {
       correo: payload.email.toLowerCase(),
       nombre: payload.name,
+      nombrePila: payload.given_name,
       fotoUrl: payload.picture,
     };
   }
