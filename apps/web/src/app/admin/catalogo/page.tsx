@@ -239,20 +239,20 @@ export default function CatalogoAdmin() {
             <tbody>
               {items.map((c) => (
                 <tr key={c.id}>
-                  <td>
+                  <td data-etiqueta="Título">
                     <Link href={`/titulo/${c.slug}`} className="admin-titulo">
                       {c.titulo}
                     </Link>
                     {c.destacado && <span className="admin-marca">Destacado</span>}
                   </td>
-                  <td>{c.tipo === 'SERIE' ? 'Serie' : 'Película'}</td>
-                  <td>{c.anioLanzamiento ?? '—'}</td>
-                  <td>
+                  <td data-etiqueta="Tipo">{c.tipo === 'SERIE' ? 'Serie' : 'Película'}</td>
+                  <td data-etiqueta="Año">{c.anioLanzamiento ?? '—'}</td>
+                  <td data-etiqueta="Estado">
                     <span className={`pa-pastilla ${c.publicado ? 'si' : 'no'}`}>
                       {c.publicado ? 'Publicado' : 'Borrador'}
                     </span>
                   </td>
-                  <td>
+                  <td data-etiqueta="Vídeo">
                     <EstadoVideo
                       tipo="contenido"
                       id={c.id}

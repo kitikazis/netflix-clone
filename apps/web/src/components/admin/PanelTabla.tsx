@@ -110,8 +110,15 @@ export function PanelTabla<T extends { id: string }>({
             <tbody>
               {items.map((fila) => (
                 <tr key={fila.id}>
+                  {/* `data-etiqueta` lleva el nombre de la columna en el propio
+                      dato: en móvil la tabla se apila en fichas y cada celda
+                      necesita decir de qué es, sin cabecera que la encabece. */}
                   {columnas.map((c) => (
-                    <td key={c.cabecera} className={c.rotulo ? 'admin-estado' : undefined}>
+                    <td
+                      key={c.cabecera}
+                      data-etiqueta={c.cabecera}
+                      className={c.rotulo ? 'admin-estado' : undefined}
+                    >
                       {c.celda(fila)}
                     </td>
                   ))}

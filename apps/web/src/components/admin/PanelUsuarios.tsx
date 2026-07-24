@@ -119,7 +119,7 @@ export function PanelUsuarios() {
             <tbody>
               {items.map((u) => (
                 <tr key={u.id}>
-                  <td>
+                  <td data-etiqueta="Cuenta">
                     <div className="cuenta">
                       <Avatar url={u.fotoUrl} nombre={u.nombre ?? u.correo} />
                       <div className="cuenta-txt">
@@ -128,7 +128,7 @@ export function PanelUsuarios() {
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td data-etiqueta="Registro">
                     <span className={`pa-origen ${u.proveedor.toLowerCase()}`}>
                       {u.proveedor === 'GOOGLE' ? 'Google' : 'Correo'}
                     </span>
@@ -138,8 +138,8 @@ export function PanelUsuarios() {
                       {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
                     </span>
                   </td>
-                  <td>{u.perfiles}</td>
-                  <td className="admin-estado">{fecha.format(new Date(u.fechaCreacion))}</td>
+                  <td data-etiqueta="Perfiles">{u.perfiles}</td>
+                  <td data-etiqueta="Alta" className="admin-estado">{fecha.format(new Date(u.fechaCreacion))}</td>
                   <td>
                     <span className={u.activo ? 'admin-si' : 'admin-no'}>
                       {u.activo ? 'Activa' : 'Inactiva'}

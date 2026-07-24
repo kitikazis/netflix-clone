@@ -1368,3 +1368,74 @@ a { color: inherit; }
   .pa-btn, .barra-btn, .btn { min-height: 40px; }
   .admin-acciones .pa-btn { min-height: 36px; }
 }
+
+/* ============================================================
+   EL PANEL EN UN MÓVIL
+   Una tabla de seis columnas no cabe en 360 px por mucho que se
+   estreche: o se arrastra de lado —perdiendo de vista el título de
+   la fila, que es lo que dice de qué va— o se apila. Se apila.
+
+   Cada fila pasa a ser una ficha y cada celda lleva su etiqueta
+   delante, sacada del `data-etiqueta` que ya escriben las tablas.
+   ============================================================ */
+
+@media (max-width: 760px) {
+  .pa .admin-tabla-marco { overflow: visible; }
+  .pa .admin-tabla,
+  .pa .admin-tabla tbody,
+  .pa .admin-tabla tr,
+  .pa .admin-tabla td { display: block; width: auto; }
+
+  /* La cabecera sobra: cada celda ya dice lo que es. Se oculta sin
+     sacarla del árbol, para que siga contando para los lectores. */
+  .pa .admin-tabla thead {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip-path: inset(50%);
+  }
+
+  .pa .admin-tabla tr {
+    border: 1px solid var(--filete); border-radius: 0.5rem;
+    background: var(--papel-alto); padding: var(--e2);
+    margin-bottom: var(--e2);
+  }
+  .pa .admin-tabla tr:hover td { background: none; }
+
+  .pa .admin-tabla td {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--e2); padding: 0.35rem 0; border: none; text-align: left;
+  }
+  .pa .admin-tabla td::before {
+    content: attr(data-etiqueta);
+    flex-shrink: 0; color: var(--tinta-media);
+    font-size: var(--t-xs); letter-spacing: var(--rotulo-espaciado);
+    text-transform: uppercase;
+  }
+  /* Las celdas sin etiqueta —la de acciones— no llevan rótulo. */
+  .pa .admin-tabla td:not([data-etiqueta])::before { content: none; }
+
+  /* El título encabeza la ficha, a cuerpo mayor y sin rótulo delante:
+     es el dato que identifica la fila, no un campo más. */
+  .pa .admin-tabla td[data-etiqueta='Título'],
+  .pa .admin-tabla td[data-etiqueta='Cuenta'] {
+    display: block; padding-bottom: var(--e2); margin-bottom: var(--e1);
+    border-bottom: 1px solid var(--filete);
+  }
+  .pa .admin-tabla td[data-etiqueta='Título']::before,
+  .pa .admin-tabla td[data-etiqueta='Cuenta']::before { content: none; }
+  .pa .admin-tabla td[data-etiqueta='Título'] .admin-titulo { font-size: var(--t-md); }
+
+  /* Las acciones, en fila propia y repartidas: se tocan con el pulgar. */
+  .pa .admin-acciones {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    padding-top: var(--e2); margin-top: var(--e1);
+    border-top: 1px solid var(--filete); text-align: left;
+  }
+  .pa .admin-acciones > * + * { margin-left: 0; }
+  .pa .admin-acciones .pa-btn { flex: 1 1 auto; justify-content: center; }
+
+  /* La cabecera del panel y sus controles, apilados y a lo ancho. */
+  .pa-cabecera { flex-direction: column; align-items: stretch; gap: var(--e2); }
+  .pa-acciones { flex-wrap: wrap; }
+  .pa-buscador { flex: 1 1 100%; }
+  .pa-buscador input { width: 100%; }
+}
