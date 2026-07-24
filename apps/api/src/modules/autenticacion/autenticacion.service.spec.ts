@@ -39,6 +39,7 @@ describe('AutenticacionService', () => {
       buscarPropio: jest.fn(),
       eliminar: jest.fn(),
       ponerAvatarSiFalta: jest.fn(),
+      ponerNombreDelProveedor: jest.fn(),
     };
     tokens = {
       generarPar: jest.fn().mockResolvedValue(parTokens),
