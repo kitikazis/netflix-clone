@@ -5,7 +5,6 @@ import { PanelTabla, type Columna } from './PanelTabla';
 import type {
   EpisodioAdmin,
   GeneroAdmin,
-  PerfilAdmin,
   ProgresoAdmin,
   SubidaAdmin,
 } from '@/lib/admin';
@@ -19,18 +18,6 @@ function reloj(segundos: number): string {
   const s = Math.floor(segundos % 60);
   return `${m}:${String(s).padStart(2, '0')}`;
 }
-
-const COLUMNAS_PERFILES: Array<Columna<PerfilAdmin>> = [
-  { cabecera: 'Perfil', celda: (p) => p.nombre },
-  { cabecera: 'Cuenta', celda: (p) => p.cuenta },
-  { cabecera: 'Infantil', celda: (p) => (p.esInfantil ? 'Sí' : '—'), rotulo: true },
-  { cabecera: 'Idioma', celda: (p) => p.idioma, rotulo: true },
-  {
-    cabecera: 'Alta',
-    celda: (p) => fecha.format(new Date(p.fechaCreacion)),
-    rotulo: true,
-  },
-];
 
 const COLUMNAS_EPISODIOS: Array<Columna<EpisodioAdmin>> = [
   {
@@ -46,7 +33,7 @@ const COLUMNAS_EPISODIOS: Array<Columna<EpisodioAdmin>> = [
     celda: (e) => `T${e.temporada}·E${e.numeroEpisodio}`,
     rotulo: true,
   },
-  { cabecera: 'Título', celda: (e) => e.titulo },
+  { cabecera: 'Título', celda: (e) => e.titulo, valor: (e) => e.titulo },
   {
     cabecera: 'Duración',
     celda: (e) => (e.duracionMinutos ? `${e.duracionMinutos} min` : '—'),
@@ -95,15 +82,6 @@ const COLUMNAS_GENEROS: Array<Columna<GeneroAdmin>> = [
   },
 ];
 
-export const PanelPerfiles = () => (
-  <PanelTabla
-    tabla="perfiles"
-    columnas={COLUMNAS_PERFILES}
-    placeholderBusqueda="Buscar por perfil o cuenta…"
-    vacio="Todavía no hay perfiles."
-  />
-);
-
 export const PanelEpisodios = () => (
   <PanelTabla
     tabla="episodios"
@@ -126,13 +104,19 @@ export const PanelGeneros = () => (
 );
 
 const COLUMNAS_SUBIDAS: Array<Columna<SubidaAdmin>> = [
-  { cabecera: 'Archivo', celda: (s) => s.nombreArchivo },
+  { cabecera: 'Archivo', celda: (s) => s.nombreArchivo, valor: (s) => s.nombreArchivo },
   {
     cabecera: 'Tamaño',
     celda: (s) => (s.tamanoBytes ? formatearBytes(Number(s.tamanoBytes)) : '—'),
+    // Por bytes, no por el texto: «904 KB» y «28 MB» no se ordenan alfabéticamente.
+    valor: (s) => (s.tamanoBytes ? Number(s.tamanoBytes) : null),
     rotulo: true,
   },
-  { cabecera: 'Lo subió', celda: (s) => s.subidoPor ?? '(cuenta borrada)' },
+  {
+    cabecera: 'Lo subió',
+    celda: (s) => s.subidoPor ?? '(cuenta borrada)',
+    valor: (s) => s.subidoPor,
+  },
   {
     cabecera: 'Usado en',
     celda: (s) =>
@@ -141,6 +125,8 @@ const COLUMNAS_SUBIDAS: Array<Columna<SubidaAdmin>> = [
   {
     cabecera: 'Subido',
     celda: (s) => fecha.format(new Date(s.fechaCreacion)),
+    // Por la fecha real: «23 jul» ordenado como texto pone abril antes que enero.
+    valor: (s) => s.fechaCreacion,
     rotulo: true,
   },
   {

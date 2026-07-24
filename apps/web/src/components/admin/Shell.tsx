@@ -4,6 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEsAdmin, useSesion } from '@/lib/sesion';
 import { BotonTema, useTema } from './Tema';
+import {
+  IconoCatalogo,
+  IconoCuentas,
+  IconoEpisodios,
+  IconoGeneros,
+  IconoProgreso,
+  IconoResumen,
+  IconoSubidas,
+} from './iconos';
 
 /**
  * Armazón del panel de administración.
@@ -15,15 +24,14 @@ import { BotonTema, useTema } from './Tema';
  * despiste de creer que se está mirando la web pública.
  */
 
-const SECCIONES: Array<{ href: string; etiqueta: string; icono: string }> = [
-  { href: '/admin', etiqueta: 'Resumen', icono: '◫' },
-  { href: '/admin/catalogo', etiqueta: 'Catálogo', icono: '▤' },
-  { href: '/admin/episodios', etiqueta: 'Episodios', icono: '⋮⋮' },
-  { href: '/admin/subidas', etiqueta: 'Subidas', icono: '↑' },
-  { href: '/admin/generos', etiqueta: 'Géneros', icono: '◇' },
-  { href: '/admin/cuentas', etiqueta: 'Cuentas', icono: '○' },
-  { href: '/admin/perfiles', etiqueta: 'Perfiles', icono: '◔' },
-  { href: '/admin/progreso', etiqueta: 'Progreso', icono: '▶' },
+const SECCIONES: Array<{ href: string; etiqueta: string; Icono: React.ComponentType }> = [
+  { href: '/admin', etiqueta: 'Resumen', Icono: IconoResumen },
+  { href: '/admin/catalogo', etiqueta: 'Catálogo', Icono: IconoCatalogo },
+  { href: '/admin/episodios', etiqueta: 'Episodios', Icono: IconoEpisodios },
+  { href: '/admin/subidas', etiqueta: 'Subidas', Icono: IconoSubidas },
+  { href: '/admin/generos', etiqueta: 'Géneros', Icono: IconoGeneros },
+  { href: '/admin/cuentas', etiqueta: 'Cuentas', Icono: IconoCuentas },
+  { href: '/admin/progreso', etiqueta: 'Progreso', Icono: IconoProgreso },
 ];
 
 interface Props {
@@ -70,8 +78,8 @@ export function Shell({ titulo, descripcion, acciones, children }: Props) {
                 className={`pa-nav-item ${activa ? 'activa' : ''}`}
                 aria-current={activa ? 'page' : undefined}
               >
-                <span className="pa-nav-icono" aria-hidden>
-                  {s.icono}
+                <span className="pa-nav-icono">
+                  <s.Icono />
                 </span>
                 {s.etiqueta}
               </Link>

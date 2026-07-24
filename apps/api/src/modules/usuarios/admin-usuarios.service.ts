@@ -20,6 +20,16 @@ export interface UsuarioAdmin {
   activo: boolean;
   fechaCreacion: Date;
   perfiles: number;
+  /**
+   * Ajustes del perfil, traídos a la cuenta.
+   *
+   * Con un perfil por cuenta, «infantil» e «idioma» son de hecho ajustes de la
+   * cuenta; tenerlos en una sección aparte obligaba a cruzar dos listas para
+   * saber algo de una sola persona. Si algún día vuelven los perfiles múltiples,
+   * aquí se vería el del primero y habría que replantearlo.
+   */
+  esInfantil: boolean | null;
+  idioma: string | null;
 }
 
 @Injectable()
@@ -42,6 +52,7 @@ export class AdminUsuariosService {
     const qb = this.repo
       .createQueryBuilder('u')
       .loadRelationCountAndMap('u.numPerfiles', 'u.perfiles')
+      .leftJoinAndSelect('u.perfiles', 'p')
       .orderBy('u.fechaCreacion', 'DESC')
       .skip(dto.offset)
       .take(dto.limite);
@@ -62,6 +73,8 @@ export class AdminUsuariosService {
       activo: u.activo,
       fechaCreacion: u.fechaCreacion,
       perfiles: (u as Usuario & { numPerfiles?: number }).numPerfiles ?? 0,
+      esInfantil: u.perfiles?.[0]?.esInfantil ?? null,
+      idioma: u.perfiles?.[0]?.idioma ?? null,
     }));
     return paginar(datos, total, dto);
   }
@@ -106,6 +119,8 @@ export class AdminUsuariosService {
       activo: usuario.activo,
       fechaCreacion: usuario.fechaCreacion,
       perfiles,
+      esInfantil: null,
+      idioma: null,
     };
   }
 

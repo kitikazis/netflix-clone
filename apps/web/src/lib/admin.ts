@@ -162,6 +162,9 @@ export interface UsuarioAdmin {
   activo: boolean;
   fechaCreacion: string;
   perfiles: number;
+  /** Ajustes del perfil, ahora que hay uno por cuenta. */
+  esInfantil: boolean | null;
+  idioma: string | null;
 }
 
 export interface Estadisticas {
@@ -212,15 +215,6 @@ export function obtenerEstadisticas(): Promise<Estadisticas> {
 // Listados de solo lectura del resto de tablas
 // ---------------------------------------------------------------------------
 
-export interface PerfilAdmin {
-  id: string;
-  nombre: string;
-  esInfantil: boolean;
-  idioma: string;
-  fechaCreacion: string;
-  cuenta: string;
-}
-
 export interface EpisodioAdmin {
   id: string;
   temporada: number;
@@ -259,7 +253,7 @@ export interface SubidaAdmin {
   episodio: string | null;
 }
 
-export type TablaAdmin = 'perfiles' | 'episodios' | 'progreso' | 'generos' | 'subidas';
+export type TablaAdmin = 'episodios' | 'progreso' | 'generos' | 'subidas';
 
 export function listarTabla<T>(
   tabla: TablaAdmin,

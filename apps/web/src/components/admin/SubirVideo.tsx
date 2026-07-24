@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   TIPOS_ACEPTADOS,
   encolarContenido,
@@ -60,8 +60,31 @@ export function SubirVideo({ destino, nombre, estadoActual, alTerminar, alCerrar
 
   const trabajando = fase === 'subiendo' || fase === 'encolando';
 
+  /**
+   * Escape cierra, salvo mientras sube.
+   *
+   * Interrumpir una subida a medias por rozar una tecla sería cruel: se han
+   * podido tragar varios minutos. Mientras trabaja hay que usar Cancelar, que
+   * dice lo que hace.
+   */
+  useEffect(() => {
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !trabajando) alCerrar();
+    };
+    document.addEventListener('keydown', alPulsar);
+    return () => document.removeEventListener('keydown', alPulsar);
+  }, [trabajando, alCerrar]);
+
   return (
-    <div className="subida">
+    <div
+      className="modal-fondo"
+      role="presentation"
+      // Pulsar fuera cierra, con la misma salvedad que Escape.
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !trabajando) alCerrar();
+      }}
+    >
+    <div className="subida" role="dialog" aria-modal="true" aria-label="Subir vídeo">
       <div className="subida-cab">
         <span className="subida-titulo">Vídeo de «{nombre}»</span>
         {estadoActual && (
@@ -140,6 +163,7 @@ export function SubirVideo({ destino, nombre, estadoActual, alTerminar, alCerrar
           </div>
         </>
       )}
+    </div>
     </div>
   );
 }

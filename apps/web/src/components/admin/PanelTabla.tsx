@@ -8,6 +8,14 @@ const LIMITE = 25;
 
 export interface Columna<T> {
   cabecera: string;
+  /**
+   * Valor por el que ordenar al pulsar la cabecera.
+   *
+   * Va aparte de `celda` porque lo que se pinta y lo que se compara rara vez
+   * coinciden: una fecha se enseña como «23 jul 2026» y ordenarla como texto
+   * pondría abril antes que enero. Sin esto, la columna no es ordenable.
+   */
+  valor?: (fila: T) => string | number | null;
   /** Contenido de la celda. Devolver string o nodo ya formateado. */
   celda: (fila: T) => React.ReactNode;
   /** Aplica el estilo de rótulo (versalitas, tabular) a la columna. */
@@ -34,6 +42,35 @@ export function PanelTabla<T extends { id: string }>({
   vacio = 'No hay registros.',
 }: Props<T>) {
   const [items, setItems] = useState<T[]>([]);
+
+  /**
+   * Orden por columna.
+   *
+   * Se ordena la página que ya está en pantalla, no el conjunto: el listado
+   * viene paginado de la API y ordenar solo estas filas es honesto —lo que se
+   * ve, ordenado— mientras que fingir un orden global exigiría que ordenara
+   * el servidor. Si algún día hace falta, se le pasa el criterio en la consulta.
+   */
+  const [orden, setOrden] = useState<{ columna: string; asc: boolean } | null>(null);
+
+  const ordenarPor = (columna: string) =>
+    setOrden((o) => (o?.columna === columna ? { columna, asc: !o.asc } : { columna, asc: true }));
+
+  const ordenados = (() => {
+    const col = columnas.find((c) => c.cabecera === orden?.columna);
+    if (!orden || !col?.valor) return items;
+    const dir = orden.asc ? 1 : -1;
+    return [...items].sort((a, b) => {
+      const x = col.valor!(a);
+      const y = col.valor!(b);
+      // Los vacíos al final siempre, se ordene como se ordene: son ausencia de
+      // dato, no un valor pequeño.
+      if (x === null || x === undefined || x === '') return 1;
+      if (y === null || y === undefined || y === '') return -1;
+      if (typeof x === 'number' && typeof y === 'number') return (x - y) * dir;
+      return String(x).localeCompare(String(y), 'es', { numeric: true }) * dir;
+    });
+  })();
   const [paginacion, setPaginacion] = useState<Paginacion | null>(null);
   const [pagina, setPagina] = useState(1);
   const [consulta, setConsulta] = useState('');
@@ -102,13 +139,24 @@ export function PanelTabla<T extends { id: string }>({
           <table className="admin-tabla">
             <thead>
               <tr>
-                {columnas.map((c) => (
-                  <th key={c.cabecera}>{c.cabecera}</th>
-                ))}
+                {columnas.map((c) => {
+                  if (!c.valor) return <th key={c.cabecera}>{c.cabecera}</th>;
+                  const activa = orden?.columna === c.cabecera;
+                  return (
+                    <th key={c.cabecera} aria-sort={activa ? (orden.asc ? 'ascending' : 'descending') : 'none'}>
+                      <button type="button" className="pa-orden" onClick={() => ordenarPor(c.cabecera)}>
+                        {c.cabecera}
+                        <span className="pa-orden-flecha" aria-hidden>
+                          {activa ? (orden.asc ? '▲' : '▼') : '⇅'}
+                        </span>
+                      </button>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
-              {items.map((fila) => (
+              {ordenados.map((fila) => (
                 <tr key={fila.id}>
                   {/* `data-etiqueta` lleva el nombre de la columna en el propio
                       dato: en móvil la tabla se apila en fichas y cada celda

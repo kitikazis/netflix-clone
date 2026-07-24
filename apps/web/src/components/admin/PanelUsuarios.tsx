@@ -110,7 +110,7 @@ export function PanelUsuarios() {
                 <th>Cuenta</th>
                 <th>Registro</th>
                 <th>Rol</th>
-                <th>Perfiles</th>
+                <th>Idioma</th>
                 <th>Alta</th>
                 <th>Estado</th>
                 <th aria-label="Acciones" />
@@ -138,7 +138,15 @@ export function PanelUsuarios() {
                       {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
                     </span>
                   </td>
-                  <td data-etiqueta="Perfiles">{u.perfiles}</td>
+                  <td data-etiqueta="Idioma">
+                    {u.idioma ?? '—'}
+                    {u.esInfantil && <span className="admin-marca">Infantil</span>}
+                    {/* Aviso de lo que el límite nuevo ya no deja crear, pero
+                        que puede quedar de antes: hay que limpiarlo a mano. */}
+                    {u.perfiles > 1 && (
+                      <span className="admin-marca">{u.perfiles} perfiles</span>
+                    )}
+                  </td>
                   <td data-etiqueta="Alta" className="admin-estado">{fecha.format(new Date(u.fechaCreacion))}</td>
                   <td>
                     <span className={u.activo ? 'admin-si' : 'admin-no'}>
