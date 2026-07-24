@@ -1274,3 +1274,38 @@ a { color: inherit; }
 }
 .rep-interruptor.on { background: var(--tinta-roja); }
 .rep-interruptor.on::after { transform: translateX(1rem); background: #fff; }
+
+/* ============================================================
+   PANTALLAS TÁCTILES
+   Lo que en un ratón se acierta con un píxel, con el dedo no. Se
+   ensancha lo que se toca y se sube el cuerpo de lo que se lee
+   pequeño, sin cambiar el diseño en escritorio: todo va dentro de
+   `pointer: coarse`, que distingue el dedo del ratón mejor que el
+   ancho de pantalla —una tablet grande también se toca—.
+   ============================================================ */
+
+@media (pointer: coarse) {
+  /* Medido a 360 px: 10,4 px en versalitas espaciadas es ilegible al sol. */
+  .vhs-tipo, .vhs-estado { font-size: 0.75rem; padding: 0.2rem 0.5rem; }
+
+  /* El micrófono medía 18×18: casi imposible de acertar. Se le da área
+     táctil sin agrandar el icono, que visualmente está bien como está. */
+  .voz { min-width: 44px; min-height: 44px; margin: -0.6rem 0; }
+
+  /* El campo de búsqueda tenía 19 px de alto. El objetivo es la caja
+     entera, no solo la línea de texto. */
+  .buscador { padding-block: 0.7rem; }
+
+  /* Los enlaces de la barra quedaban en 19-23 px de alto. */
+  .barra-link, .barra-btn, .barra-perfil { padding-block: 0.6rem; }
+  .barra-nav { gap: var(--e3); }
+
+  /* Los filtros de género medían 24 px de alto y van pegados unos a otros:
+     con el dedo se acierta el de al lado la mitad de las veces. */
+  .filtro { min-height: 40px; display: inline-flex; align-items: center; }
+  .filtros { gap: var(--e2); }
+
+  /* Botones y acciones del panel: alto cómodo para el pulgar. */
+  .pa-btn, .barra-btn, .btn { min-height: 40px; }
+  .admin-acciones .pa-btn { min-height: 36px; }
+}

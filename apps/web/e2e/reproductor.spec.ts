@@ -41,13 +41,22 @@ test.describe('reproductor', () => {
     const video = page.locator('video');
     await expect(video).toBeVisible();
 
-    // Los navegadores que trae Playwright se compilan sin los códecs con
-    // licencia, y H.264 es uno. Si este no puede con el formato, la prueba no
-    // tiene nada que decir del código: se salta en vez de dar un falso rojo.
-    const soportaH264 = await video.evaluate((v: HTMLVideoElement) =>
-      Boolean(v.canPlayType('video/mp4; codecs="avc1.42E01E"')),
-    );
-    test.skip(!soportaH264, 'este navegador de pruebas no trae el códec H.264');
+    /**
+     * Los navegadores que trae Playwright no son los de verdad: se compilan sin
+     * los códecs con licencia, y su WebKit además viene sin Media Source
+     * Extensions Y sin HLS nativo, cosa que el Safari real sí tiene. Si el
+     * navegador no puede reproducir HLS por ninguna de las dos vías, la prueba
+     * no tiene nada que decir del código y se salta, en vez de dar un rojo que
+     * haría buscar un fallo inexistente.
+     */
+    const puede = await video.evaluate((v: HTMLVideoElement) => ({
+      h264: Boolean(v.canPlayType('video/mp4; codecs="avc1.42E01E"')),
+      hls:
+        typeof window.MediaSource !== 'undefined' ||
+        Boolean(v.canPlayType('application/vnd.apple.mpegurl')),
+    }));
+    test.skip(!puede.h264, 'este navegador de pruebas no trae el códec H.264');
+    test.skip(!puede.hls, 'este navegador de pruebas no puede reproducir HLS');
 
     // Que el elemento exista no dice nada: hay que ver que le llegan datos.
     await expect
@@ -168,7 +177,10 @@ test.describe('catálogo', () => {
     test.skip(!palabra, 'el catálogo está vacío');
 
     await page.goto('/');
-    await page.getByLabel('Buscar en el catálogo').fill(palabra!);
+    // Se teclea en vez de rellenar de golpe: `fill` mete el valor y lanza un
+    // solo evento, y en WebKit eso no despierta al autocompletado. Un usuario
+    // escribe letra a letra, así que la prueba también.
+    await page.getByLabel('Buscar en el catálogo').pressSequentially(palabra!, { delay: 60 });
     const sugerencias = page.getByRole('option');
     await expect.poll(() => sugerencias.count(), { timeout: 30_000 }).toBeGreaterThan(0);
     // Se busca solo por título: nada de coincidencias escondidas en la sinopsis,
