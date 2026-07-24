@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cerrarSesion, salirDelPerfil, useEsAdmin, useSesion } from '@/lib/sesion';
@@ -51,11 +51,19 @@ export function BarraSuperior() {
         {sesion?.perfilActivo ? (
           <span className="barra-sesion">
             <Link href="/perfiles" className="barra-perfil" title="Gestionar perfiles">
-              ◉ {sesion.perfilActivo.nombre}
+              <CaraPerfil
+                url={sesion.perfilActivo.avatarUrl}
+                nombre={sesion.perfilActivo.nombre}
+              />
+              <span className="barra-perfil-nombre">{sesion.perfilActivo.nombre}</span>
             </Link>
-            <button type="button" className="barra-btn" onClick={cambiarPerfil}>
-              Cambiar
-            </button>
+            {/* Con un perfil por cuenta no hay a qué cambiar: el botón solo
+                aparece si de verdad hay entre qué elegir. */}
+            {sesion.perfiles.length > 1 && (
+              <button type="button" className="barra-btn" onClick={cambiarPerfil}>
+                Cambiar
+              </button>
+            )}
             <button type="button" className="barra-btn" onClick={salir}>
               Salir
             </button>
@@ -67,5 +75,26 @@ export function BarraSuperior() {
         )}
       </nav>
     </header>
+  );
+}
+
+/** Cara del perfil en la barra: la foto si la hay, y si no el disco de siempre. */
+function CaraPerfil({ url, nombre }: { url: string | null; nombre: string }) {
+  const [roto, setRoto] = useState(false);
+  if (!url || roto) return <span aria-hidden>◉</span>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className="barra-cara"
+      src={url}
+      // Vacío a propósito: el nombre va al lado, en texto. Repetirlo aquí haría
+      // que un lector de pantalla lo dijera dos veces seguidas.
+      alt=""
+      title={nombre}
+      width={24}
+      height={24}
+      referrerPolicy="no-referrer"
+      onError={() => setRoto(true)}
+    />
   );
 }

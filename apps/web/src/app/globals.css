@@ -147,7 +147,18 @@ a { color: inherit; }
 .barra-link { color: var(--tinta-media); text-decoration: none; }
 .barra-link:hover { color: var(--tinta); }
 .barra-sesion { display: inline-flex; align-items: center; gap: var(--e2); }
-.barra-perfil { color: var(--tinta-roja); text-decoration: none; }
+.barra-perfil {
+  color: var(--tinta-roja); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.4rem; min-width: 0;
+}
+.barra-cara {
+  width: 1.5rem; height: 1.5rem; border-radius: 50%; object-fit: cover;
+  background: var(--papel-hueco); flex-shrink: 0;
+}
+/* El nombre completo puede ser largo: se recorta en vez de empujar la barra. */
+.barra-perfil-nombre {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 12ch;
+}
 .barra-btn {
   font-family: inherit; font-size: var(--t-xs);
   letter-spacing: var(--rotulo-espaciado); text-transform: uppercase;
@@ -597,6 +608,48 @@ a { color: inherit; }
   color: var(--tinta);
   font-family: var(--texto);
 }
+
+/* Modo claro del panel: se cambian los valores, no las reglas. Todo lo que hay
+   debajo usa estas variables, así que ninguna otra línea se entera. */
+:root[data-tema-panel='claro'] .pa {
+  --papel: #ffffff;
+  --papel-hueco: #f3f2f0;
+  --papel-alto: #f8f8f7;
+  --tinta: #16181d;
+  --tinta-media: #5a5f6b;
+  --tinta-suave: #7c828e;
+  --filete: #e2e4e8;
+  --filete-fuerte: #c9ccd3;
+  --tinta-roja: #b4392c;
+  --alerta: #b4392c;
+  --exito: #2f7a4a;
+}
+/* La página entera acompaña: si no, al desplazar asoma el color anterior. */
+:root[data-tema-panel='claro'] body { background: #ffffff; }
+:root[data-tema-panel='oscuro'] body { background: #131417; }
+
+:root[data-tema-panel='claro'] .pa-lateral { background: #f8f8f7; }
+:root[data-tema-panel='claro'] .pa-nav-item:hover { background: #eeeef0; }
+:root[data-tema-panel='claro'] .pa-nav-item.activa { background: #e8e9ec; }
+:root[data-tema-panel='claro'] .pa-btn { background: #ffffff; }
+:root[data-tema-panel='claro'] .pa-btn:hover:not(:disabled) { background: #f1f1f3; }
+:root[data-tema-panel='claro'] .pa-buscador { background: #ffffff; }
+:root[data-tema-panel='claro'] .pa .admin-tabla tr:hover td { background: #f6f6f8; }
+:root[data-tema-panel='claro'] .pa .campo input,
+:root[data-tema-panel='claro'] .pa .admin-campos select,
+:root[data-tema-panel='claro'] .pa .admin-campos textarea { background: #ffffff; }
+:root[data-tema-panel='claro'] .pa-pastilla.si { background: #eaf5ee; border-color: #bcdcc7; }
+:root[data-tema-panel='claro'] .pa-origen.google { color: #2f6fbb; border-color: #b9d0ea; }
+
+.pa-tema {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%;
+  padding: 0.45rem 0.6rem; margin-bottom: var(--e1); border-radius: 0.375rem;
+  background: none; border: 1px solid var(--filete);
+  color: var(--tinta-media); font-family: inherit; font-size: var(--t-xs);
+  cursor: pointer; transition: color var(--transicion), border-color var(--transicion);
+}
+.pa-tema:hover { color: var(--tinta); border-color: var(--filete-fuerte); }
+.pa-tema-txt { letter-spacing: var(--rotulo-espaciado); text-transform: uppercase; }
 
 /* ---------- Barra lateral ---------- */
 .pa-lateral {

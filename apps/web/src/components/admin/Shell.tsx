@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEsAdmin, useSesion } from '@/lib/sesion';
+import { BotonTema, useTema } from './Tema';
 
 /**
  * Armazón del panel de administración.
@@ -37,6 +38,7 @@ export function Shell({ titulo, descripcion, acciones, children }: Props) {
   const sesion = useSesion();
   const esAdmin = useEsAdmin();
   const ruta = usePathname();
+  const [tema, alternarTema] = useTema();
 
   if (!sesion) return <Aviso titulo="Administración" texto="Necesitas iniciar sesión." accion={{ href: '/entrar', etiqueta: 'Entrar' }} />;
   if (!esAdmin) {
@@ -78,6 +80,7 @@ export function Shell({ titulo, descripcion, acciones, children }: Props) {
         </nav>
 
         <div className="pa-pie">
+          <BotonTema tema={tema} alAlternar={alternarTema} />
           <span className="pa-correo" title={sesion.correo}>
             {sesion.correo}
           </span>

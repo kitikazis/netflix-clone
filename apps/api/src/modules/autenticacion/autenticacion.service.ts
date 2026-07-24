@@ -104,6 +104,9 @@ export class AutenticacionService {
       if (identidad.fotoUrl) {
         await this.perfiles.ponerAvatarSiFalta(usuario.id, identidad.fotoUrl);
       }
+      if (identidad.nombre) {
+        await this.perfiles.ponerNombreDelProveedor(usuario.id, identidad.nombre);
+      }
       perfiles = await this.perfiles.listarDeUsuario(usuario.id);
     } else {
       // Cuenta nueva: sin contraseña, la identidad la respalda Google.
@@ -118,7 +121,7 @@ export class AutenticacionService {
       // encontrarse «Perfil 1» con un avatar vacío no le dice nada a nadie.
       perfiles = [
         await this.perfiles.crear(usuario.id, {
-          nombre: primerNombre(identidad.nombrePila ?? identidad.nombre) ?? 'Mi perfil',
+          nombre: nombreDePerfil(identidad.nombre ?? identidad.nombrePila) ?? 'Mi perfil',
           avatarUrl: identidad.fotoUrl,
         }),
       ];
@@ -203,7 +206,7 @@ export class AutenticacionService {
  * nombres compuestos. Se recorta a 100 caracteres, que es lo que admite la
  * columna.
  */
-function primerNombre(completo?: string): string | undefined {
-  const pila = completo?.trim().split(/\s+/)[0];
-  return pila ? pila.slice(0, 100) : undefined;
+function nombreDePerfil(completo?: string): string | undefined {
+  const limpio = completo?.trim().replace(/\s+/g, ' ');
+  return limpio ? limpio.slice(0, 100) : undefined;
 }

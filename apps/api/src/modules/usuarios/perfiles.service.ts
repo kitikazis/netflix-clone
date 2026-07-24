@@ -66,4 +66,34 @@ export class PerfilesService {
       { avatarUrl: avatarUrl.slice(0, 500) },
     );
   }
+
+  /**
+   * Pone el nombre que da el proveedor, sin pisar el que haya elegido el usuario.
+   *
+   * Solo se actualiza si el actual está vacío o si es el nombre de pila del
+   * completo —«luis» frente a «Luis Kitikazis»—, que es la señal de que lo puso
+   * el sistema y no una persona. Un perfil llamado «Sala de estar» se queda como
+   * está: renombrárselo a alguien porque ha vuelto a entrar sería impertinente.
+   */
+  async ponerNombreDelProveedor(usuarioId: string, completo: string): Promise<void> {
+    const nombre = completo.trim().slice(0, 100);
+    if (!nombre) return;
+
+    const pila = nombre.split(/\s+/)[0];
+    const normal = (s: string) =>
+      s
+        .trim()
+        .toLocaleLowerCase('es')
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '');
+
+    for (const perfil of await this.repo.find({ where: { usuarioId } })) {
+      const puesto = perfil.nombre ?? '';
+      const automatico =
+        !puesto.trim() || normal(puesto) === normal(pila) || normal(puesto) === normal(nombre);
+      if (automatico && puesto !== nombre) {
+        await this.repo.update({ id: perfil.id }, { nombre });
+      }
+    }
+  }
 }
