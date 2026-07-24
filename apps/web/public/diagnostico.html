@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico — Kitiflix</title>
+<!--
+  Página de diagnóstico para un navegador que no consigue abrir el sitio.
+
+  Está escrita a propósito como si fuera 2010: HTML plano, sin React, sin
+  empaquetador, sin módulos, y JavaScript de ES5 —nada de `let`, funciones
+  flecha, plantillas ni `?.`—. Si el sitio no carga en un móvil concreto, es
+  porque su navegador no entiende algo del código moderno; una página de
+  diagnóstico escrita con ese mismo código sería igual de inútil.
+
+  Al vivir en `public/` la sirve Netlify tal cual, sin pasar por Next.
+
+  Cada comprobación se hace con `eval` dentro de un try/catch: la sintaxis que
+  el navegador no entiende revienta al parsear, y con `eval` ese fallo se puede
+  capturar en vez de tumbar la página entera.
+-->
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+         margin: 0; padding: 16px; background: #f4efe6; color: #1a1614; line-height: 1.5; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.sub { margin: 0 0 16px; color: #5c534c; font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td { padding: 7px 4px; border-bottom: 1px solid #cfc5b6; vertical-align: top; }
+  td.v { text-align: right; white-space: nowrap; font-weight: 600; }
+  .si { color: #3f6b4a; }
+  .no { color: #a8342a; }
+  #ua { font-size: 12px; word-break: break-all; background: #eae3d7;
+        padding: 8px; border: 1px solid #cfc5b6; margin-bottom: 16px; }
+  #resumen { margin: 16px 0; padding: 12px; border: 2px solid #1a1614; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<h1>Diagnóstico de Kitiflix</h1>
+<p class="sub">Manda una captura de esta pantalla entera.</p>
+
+<div id="resumen">Comprobando…</div>
+<div id="ua">…</div>
+<table id="tabla"></table>
+
+<script>
+/* ES5 estricto: este archivo tiene que ejecutarse hasta en navegadores viejos. */
+(function () {
+  var tabla = document.getElementById('tabla');
+  var fallos = [];
+
+  function fila(nombre, ok, detalle) {
+    var tr = document.createElement('tr');
+    var td1 = document.createElement('td');
+    td1.appendChild(document.createTextNode(nombre));
+    var td2 = document.createElement('td');
+    td2.className = 'v ' + (ok ? 'si' : 'no');
+    td2.appendChild(document.createTextNode(detalle || (ok ? 'sí' : 'NO')));
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tabla.appendChild(tr);
+    if (!ok) { fallos.push(nombre); }
+  }
+
+  /* Sintaxis: si el navegador no la entiende, `eval` lanza y aquí se captura. */
+  function soportaSintaxis(codigo) {
+    try { eval(codigo); return true; } catch (e) { return false; }
+  }
+
+  document.getElementById('ua').appendChild(
+    document.createTextNode(navigator.userAgent)
+  );
+
+  fila('Encadenamiento opcional  a?.b', soportaSintaxis('var o={};o?.x'));
+  fila('Coalescencia  a ?? b', soportaSintaxis('var a=null;a ?? 1'));
+  fila('Funciones flecha  () =>', soportaSintaxis('(function(){return 1})'));
+  fila('Plantillas  `texto`', soportaSintaxis('var s=`x`'));
+  fila('Array.prototype.at()', typeof Array.prototype.at === 'function');
+  fila('Object.hasOwn()', typeof Object.hasOwn === 'function');
+  fila('String.replaceAll()', typeof String.prototype.replaceAll === 'function');
+  fila('Promise', typeof Promise !== 'undefined');
+  fila('fetch()', typeof fetch !== 'undefined');
+
+  /* CSS: lo que el sitio da por hecho. */
+  var soporta = (window.CSS && CSS.supports)
+    ? function (p, v) { return CSS.supports(p, v); }
+    : function () { return false; };
+
+  fila('CSS.supports disponible', !!(window.CSS && CSS.supports));
+  fila('Variables CSS  var(--x)', soporta('--x', '0') || soporta('color', 'var(--x)'));
+  fila('CSS  aspect-ratio', soporta('aspect-ratio', '1'));
+  fila('CSS  gap en flex', soporta('gap', '1px'));
+  fila('CSS  clamp()', soporta('width', 'clamp(1px,2px,3px)'));
+  fila('CSS  color-mix()', soporta('color', 'color-mix(in srgb, red 50%, blue)'));
+  fila('CSS  selector :has()', (function () {
+    try { document.querySelector('body:has(*)'); return true; } catch (e) { return false; }
+  })());
+
+  /* Vídeo: sin esto el reproductor no puede funcionar. */
+  var v = document.createElement('video');
+  fila('Etiqueta <video>', !!v.canPlayType);
+  fila('Vídeo H.264', !!(v.canPlayType && v.canPlayType('video/mp4; codecs="avc1.42E01E"')));
+  fila('HLS nativo', !!(v.canPlayType && v.canPlayType('application/vnd.apple.mpegurl')));
+  fila('MediaSource (hls.js)', typeof window.MediaSource !== 'undefined');
+
+  fila('localStorage', (function () {
+    try { localStorage.setItem('_p', '1'); localStorage.removeItem('_p'); return true; }
+    catch (e) { return false; }
+  })());
+
+  var resumen = document.getElementById('resumen');
+  while (resumen.firstChild) { resumen.removeChild(resumen.firstChild); }
+  var texto;
+  if (fallos.length === 0) {
+    texto = 'Este navegador soporta todo lo que el sitio necesita. '
+          + 'Si aun así se ve en blanco, el problema es otro.';
+  } else if (fallos.length === 1) {
+    texto = 'A este navegador le falta una cosa: ' + fallos[0] + '.';
+  } else {
+    texto = 'A este navegador le faltan ' + fallos.length + ' cosas: ' + fallos.join(', ') + '.';
+  }
+  resumen.appendChild(document.createTextNode(texto));
+})();
+</script>
+
+</body>
+</html>
