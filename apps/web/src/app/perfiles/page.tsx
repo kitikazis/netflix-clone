@@ -110,7 +110,7 @@ export default function Perfiles() {
             const activo = sesion.perfilActivo?.id === p.id;
             return (
               <div key={p.id} className={`perfil-card perfil-gestion ${activo ? 'activo' : ''}`}>
-                <span className="perfil-avatar">◉</span>
+                <AvatarPerfil url={p.avatarUrl} nombre={p.nombre} />
                 <span className="perfil-nombre">{p.nombre}</span>
                 {p.esInfantil && <span className="perfil-kids">KIDS</span>}
                 {activo && <span className="perfil-activo-eti">EN USO</span>}
@@ -177,5 +177,30 @@ export default function Perfiles() {
         </Link>
       </div>
     </div>
+  );
+}
+
+/**
+ * Avatar del perfil: la foto si la hay, y si no el disco de siempre.
+ *
+ * Va con `<img>` normal y no con el componente de Next porque las fotos de
+ * Google viven en dominios que cambian y habría que autorizarlos uno a uno; por
+ * una miniatura no compensa. Si la imagen falla —Google a veces las retira— se
+ * cae al disco en vez de dejar el hueco roto.
+ */
+function AvatarPerfil({ url, nombre }: { url: string | null; nombre: string }) {
+  const [roto, setRoto] = useState(false);
+  if (!url || roto) return <span className="perfil-avatar">◉</span>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className="perfil-avatar perfil-foto"
+      src={url}
+      alt={`Foto de ${nombre}`}
+      width={56}
+      height={56}
+      referrerPolicy="no-referrer"
+      onError={() => setRoto(true)}
+    />
   );
 }

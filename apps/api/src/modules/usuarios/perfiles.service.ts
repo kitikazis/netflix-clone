@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Perfil } from './entities/perfil.entity';
 import { CrearPerfilDto } from './dto/crear-perfil.dto';
 
@@ -38,5 +38,18 @@ export class PerfilesService {
   async eliminar(usuarioId: string, perfilId: string): Promise<void> {
     const perfil = await this.buscarPropio(usuarioId, perfilId);
     await this.repo.remove(perfil);
+  }
+
+  /**
+   * Pone la foto a los perfiles de la cuenta que no tengan ninguna.
+   *
+   * Solo rellena huecos. Un avatar que el usuario haya elegido no se toca:
+   * entrar con Google no es motivo para cambiárselo.
+   */
+  async ponerAvatarSiFalta(usuarioId: string, avatarUrl: string): Promise<void> {
+    await this.repo.update(
+      { usuarioId, avatarUrl: IsNull() },
+      { avatarUrl: avatarUrl.slice(0, 500) },
+    );
   }
 }

@@ -1275,6 +1275,12 @@ a { color: inherit; }
 .rep-interruptor.on { background: var(--tinta-roja); }
 .rep-interruptor.on::after { transform: translateX(1rem); background: #fff; }
 
+/* La foto real sustituye al disco: mismo hueco, borde redondo. */
+.perfil-foto {
+  border-radius: 50%; object-fit: cover;
+  background: var(--papel-hueco); border: 1px solid var(--filete);
+}
+
 /* ============================================================
    PANTALLAS TÁCTILES
    Lo que en un ratón se acierta con un píxel, con el dedo no. Se

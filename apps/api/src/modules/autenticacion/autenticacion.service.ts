@@ -91,6 +91,19 @@ export class AutenticacionService {
       if (!usuario.activo) {
         throw new UnauthorizedException('Cuenta no disponible');
       }
+      // Se rellenan los huecos con lo que trae Google, sin pisar lo que ya
+      // hubiera: una cuenta anterior a esto no tiene nombre ni foto, y sería
+      // absurdo tener el dato delante y dejarla en blanco. Los perfiles que ya
+      // existen no se tocan: el avatar es algo que el usuario elige.
+      await this.usuarios.completarDesdeProveedor(usuario.id, {
+        nombre: identidad.nombre,
+        fotoUrl: identidad.fotoUrl,
+      });
+      usuario = (await this.usuarios.buscarPorId(usuario.id)) ?? usuario;
+      // Y a los perfiles que aún no tienen cara se les pone la de Google.
+      if (identidad.fotoUrl) {
+        await this.perfiles.ponerAvatarSiFalta(usuario.id, identidad.fotoUrl);
+      }
       perfiles = await this.perfiles.listarDeUsuario(usuario.id);
     } else {
       // Cuenta nueva: sin contraseña, la identidad la respalda Google.

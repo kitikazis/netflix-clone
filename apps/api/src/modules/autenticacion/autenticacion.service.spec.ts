@@ -31,12 +31,14 @@ describe('AutenticacionService', () => {
       buscarPorCorreoConHash: jest.fn(),
       buscarPorId: jest.fn(),
       crear: jest.fn(),
+      completarDesdeProveedor: jest.fn(),
     };
     perfiles = {
       crear: jest.fn(),
       listarDeUsuario: jest.fn(),
       buscarPropio: jest.fn(),
       eliminar: jest.fn(),
+      ponerAvatarSiFalta: jest.fn(),
     };
     tokens = {
       generarPar: jest.fn().mockResolvedValue(parTokens),
