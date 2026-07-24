@@ -142,6 +142,9 @@ export default function Perfiles() {
           })}
         </div>
 
+        {/* Con un perfil por cuenta, el formulario solo estorba: ofrecía algo
+            que la API iba a rechazar. Aparece únicamente si aún no hay ninguno. */}
+        {perfiles.length === 0 && (
         <form className="perfil-alta" onSubmit={crear}>
           <label className="campo">
             <span>NUEVO PERFIL</span>
@@ -169,6 +172,7 @@ export default function Perfiles() {
             ＋ CREAR PERFIL
           </button>
         </form>
+        )}
 
         {error && <div className="form-error">{error}</div>}
 

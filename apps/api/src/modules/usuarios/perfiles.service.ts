@@ -6,7 +6,17 @@ import { CrearPerfilDto } from './dto/crear-perfil.dto';
 
 @Injectable()
 export class PerfilesService {
-  private readonly maxPerfiles = 5;
+  /**
+   * Un perfil por cuenta.
+   *
+   * La pantalla de «¿quién está viendo?» tiene sentido en un televisor
+   * compartido por una familia; aquí solo añadía un paso entre entrar y ver.
+   * Con uno solo, quien entra va directo al catálogo.
+   *
+   * El modelo sigue admitiendo varios —el progreso cuelga del perfil, no de la
+   * cuenta— así que subir este número vuelve a habilitarlos sin tocar nada más.
+   */
+  private readonly maxPerfiles = 1;
 
   constructor(
     @InjectRepository(Perfil)
@@ -20,7 +30,11 @@ export class PerfilesService {
   async crear(usuarioId: string, dto: CrearPerfilDto): Promise<Perfil> {
     const total = await this.repo.count({ where: { usuarioId } });
     if (total >= this.maxPerfiles) {
-      throw new ForbiddenException(`Máximo ${this.maxPerfiles} perfiles por cuenta`);
+      throw new ForbiddenException(
+        this.maxPerfiles === 1
+          ? 'Cada cuenta tiene un único perfil'
+          : `Máximo ${this.maxPerfiles} perfiles por cuenta`,
+      );
     }
     const perfil = this.repo.create({ ...dto, usuarioId });
     return this.repo.save(perfil);

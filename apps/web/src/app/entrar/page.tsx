@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -37,19 +37,41 @@ export default function Entrar() {
     }
   }
 
-  async function elegir(perfilId: string) {
-    setError(null);
-    setCargando(true);
-    try {
-      await seleccionarPerfil(perfilId);
-      router.push('/');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al elegir perfil');
-      setCargando(false);
-    }
-  }
+  const elegir = useCallback(
+    async (perfilId: string) => {
+      setError(null);
+      setCargando(true);
+      try {
+        await seleccionarPerfil(perfilId);
+        router.push('/');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error al elegir perfil');
+        setCargando(false);
+      }
+    },
+    [router],
+  );
 
-  // Paso 2: sesión iniciada, elegir perfil.
+  /**
+   * Con un solo perfil no hay nada que elegir: se entra directo.
+   *
+   * La pantalla de «¿quién está viendo?» tiene sentido en un televisor que
+   * comparte una familia; con un perfil por cuenta solo era un paso de más
+   * entre poner la contraseña y ver algo. Se deja el selector para cuando haya
+   * varios, que el modelo los sigue admitiendo.
+   */
+  const yaIntentado = useRef(false);
+  useEffect(() => {
+    if (!sesion || sesion.perfilActivo || sesion.perfiles.length !== 1) return;
+    // Una sola vez. Si la selección falla —token caducado, red— el estado
+    // vuelve a como estaba y el efecto se dispararía otra vez: sin este
+    // pestillo son mil peticiones por minuto contra la API. Medido.
+    if (yaIntentado.current) return;
+    yaIntentado.current = true;
+    void elegir(sesion.perfiles[0].id);
+  }, [sesion, elegir]);
+
+  // Paso 2: sesión iniciada, y hay más de un perfil: se elige.
   if (sesion && !sesion.perfilActivo) {
     return (
       <div className="entrar">
@@ -64,7 +86,7 @@ export default function Entrar() {
                 disabled={cargando}
                 onClick={() => elegir(p.id)}
               >
-                <span className="perfil-avatar">◉</span>
+                <AvatarPerfil url={p.avatarUrl} nombre={p.nombre} />
                 <span className="perfil-nombre">{p.nombre}</span>
                 {p.esInfantil && <span className="perfil-kids">Infantil</span>}
               </button>
@@ -169,5 +191,23 @@ export default function Entrar() {
         )}
       </div>
     </div>
+  );
+}
+
+/** Foto del perfil, con el disco de siempre como respaldo. */
+function AvatarPerfil({ url, nombre }: { url: string | null; nombre: string }) {
+  const [roto, setRoto] = useState(false);
+  if (!url || roto) return <span className="perfil-avatar">◉</span>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className="perfil-avatar perfil-foto"
+      src={url}
+      alt={`Foto de ${nombre}`}
+      width={56}
+      height={56}
+      referrerPolicy="no-referrer"
+      onError={() => setRoto(true)}
+    />
   );
 }
