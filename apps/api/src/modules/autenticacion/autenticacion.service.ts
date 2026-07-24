@@ -2,12 +2,14 @@ import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/co
 import { UsuariosService } from '@/modules/usuarios/usuarios.service';
 import { PerfilesService } from '@/modules/usuarios/perfiles.service';
 import { Usuario } from '@/modules/usuarios/entities/usuario.entity';
+import { Perfil } from '@/modules/usuarios/entities/perfil.entity';
 import { RolUsuario } from '@/modules/usuarios/enums/rol-usuario.enum';
 import { RefreshTokenPayload } from '@/common/interfaces/token-payload.interface';
 import { HashService } from './hash.service';
 import { TokensService } from './tokens.service';
 import { RegistroDto } from './dto/registro.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleService } from './google.service';
 
 @Injectable()
 export class AutenticacionService {
@@ -16,6 +18,7 @@ export class AutenticacionService {
     private readonly perfiles: PerfilesService,
     private readonly tokens: TokensService,
     private readonly hash: HashService,
+    private readonly google: GoogleService,
   ) {}
 
   async registro(dto: RegistroDto) {
@@ -45,6 +48,12 @@ export class AutenticacionService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    // Una cuenta creada con Google no tiene contraseña: sin esto, comparar
+    // contra null podría dar por buena cualquier cadena según la librería.
+    if (!usuario.contrasenaHash) {
+      throw new UnauthorizedException('Esta cuenta entra con Google');
+    }
+
     const coincide = await this.hash.comparar(dto.contrasena, usuario.contrasenaHash);
     if (!coincide) {
       throw new UnauthorizedException('Credenciales inválidas');
@@ -58,6 +67,48 @@ export class AutenticacionService {
       }),
       this.perfiles.listarDeUsuario(usuario.id),
     ]);
+
+    return { usuario: this.aPublico(usuario), perfiles, tokens };
+  }
+
+  /**
+   * Entra con Google.
+   *
+   * Si el correo ya existe se enlaza con esa cuenta en vez de crear otra: el
+   * correo viene verificado por Google, así que es la misma persona, y
+   * rechazarlo la dejaría fuera de su propia cuenta sin explicación. La cuenta
+   * conserva su contraseña si la tenía, de modo que puede seguir entrando de
+   * las dos formas.
+   */
+  async entrarConGoogle(idToken: string) {
+    const identidad = await this.google.verificar(idToken);
+
+    let usuario = await this.usuarios.buscarPorCorreo(identidad.correo);
+    let perfiles: Perfil[];
+
+    if (usuario) {
+      if (!usuario.activo) {
+        throw new UnauthorizedException('Cuenta no disponible');
+      }
+      perfiles = await this.perfiles.listarDeUsuario(usuario.id);
+    } else {
+      // Cuenta nueva: sin contraseña, la identidad la respalda Google.
+      usuario = await this.usuarios.crear({
+        correo: identidad.correo,
+        contrasenaHash: null,
+      });
+      perfiles = [
+        await this.perfiles.crear(usuario.id, {
+          nombre: identidad.nombre?.split(' ')[0] || 'Perfil 1',
+        }),
+      ];
+    }
+
+    const tokens = await this.tokens.generarPar({
+      sub: usuario.id,
+      correo: usuario.correo,
+      rol: usuario.rol,
+    });
 
     return { usuario: this.aPublico(usuario), perfiles, tokens };
   }

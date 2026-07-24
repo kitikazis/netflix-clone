@@ -27,7 +27,7 @@ export class UsuariosService {
     return this.repo.findOne({ where: { id } });
   }
 
-  crear(datos: { correo: string; contrasenaHash: string }): Promise<Usuario> {
+  crear(datos: { correo: string; contrasenaHash: string | null }): Promise<Usuario> {
     const usuario = this.repo.create(datos);
     return this.repo.save(usuario);
   }

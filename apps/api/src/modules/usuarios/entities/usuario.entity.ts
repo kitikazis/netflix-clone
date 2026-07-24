@@ -12,9 +12,15 @@ export class Usuario extends EntidadBase {
   @Column({ type: 'varchar', length: 255 })
   correo: string;
 
-  // Nunca se selecciona por defecto: hay que pedirlo explícitamente (addSelect).
-  @Column({ type: 'varchar', length: 255, select: false })
-  contrasenaHash: string;
+  /**
+   * Nunca se selecciona por defecto: hay que pedirlo explícitamente (addSelect).
+   *
+   * Es nulo en las cuentas creadas con Google, que nunca han tenido contraseña.
+   * Guardar un hash inventado sería peor: parecería una credencial válida y
+   * nadie podría iniciar sesión con ella jamás.
+   */
+  @Column({ type: 'varchar', length: 255, select: false, nullable: true })
+  contrasenaHash: string | null;
 
   @Column({
     type: 'enum',

@@ -7,6 +7,7 @@ import { AccessTokenPayload } from '@/common/interfaces/token-payload.interface'
 import { AutenticacionService } from './autenticacion.service';
 import { RegistroDto } from './dto/registro.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleDto } from './dto/google.dto';
 import { RefrescarTokenDto } from './dto/refrescar-token.dto';
 
 @ApiTags('autenticacion')
@@ -32,6 +33,13 @@ export class AutenticacionController {
   @ApiOperation({ summary: 'Rota el par de tokens' })
   @HttpCode(200)
   @Throttle({ general: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Entra con una cuenta de Google' })
+  @HttpCode(200)
+  @Post('google')
+  google(@Body() dto: GoogleDto) {
+    return this.auth.entrarConGoogle(dto.idToken);
+  }
+
   @Post('refrescar')
   refrescar(@Body() dto: RefrescarTokenDto) {
     return this.auth.refrescar(dto.refreshToken);

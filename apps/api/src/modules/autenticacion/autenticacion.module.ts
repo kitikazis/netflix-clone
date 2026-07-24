@@ -6,6 +6,7 @@ import { AutenticacionService } from './autenticacion.service';
 import { AutenticacionController } from './autenticacion.controller';
 import { TokensService } from './tokens.service';
 import { HashService } from './hash.service';
+import { GoogleService } from './google.service';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 
 /**
@@ -16,6 +17,6 @@ import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 @Module({
   imports: [PassportModule, JwtModule.register({}), UsuariosModule],
   controllers: [AutenticacionController],
-  providers: [AutenticacionService, TokensService, HashService, JwtAccessStrategy],
+  providers: [AutenticacionService, TokensService, HashService, GoogleService, JwtAccessStrategy],
 })
 export class AutenticacionModule {}

@@ -4,6 +4,7 @@ import { UsuariosService } from '@/modules/usuarios/usuarios.service';
 import { PerfilesService } from '@/modules/usuarios/perfiles.service';
 import { TokensService } from './tokens.service';
 import { HashService } from './hash.service';
+import { GoogleService } from './google.service';
 
 type Mock<T> = { [K in keyof T]: jest.Mock };
 
@@ -13,6 +14,8 @@ describe('AutenticacionService', () => {
   let perfiles: Mock<PerfilesService>;
   let tokens: Mock<TokensService>;
   let hash: Mock<HashService>;
+  // Solo `verificar`: es lo único que el servicio le pide.
+  let google: { verificar: jest.Mock };
 
   const parTokens = { accessToken: 'access.jwt', refreshToken: 'refresh.jwt' };
   const usuarioMock = {
@@ -47,12 +50,16 @@ describe('AutenticacionService', () => {
       hash: jest.fn(),
       comparar: jest.fn(),
     };
+    // La verificación del token de Google tiene su propia suite; aquí solo se
+    // necesita que la dependencia exista.
+    google = { verificar: jest.fn() };
 
     service = new AutenticacionService(
       usuarios as unknown as UsuariosService,
       perfiles as unknown as PerfilesService,
       tokens as unknown as TokensService,
       hash as unknown as HashService,
+      google as unknown as GoogleService,
     );
   });
 

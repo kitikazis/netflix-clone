@@ -48,6 +48,15 @@ export const redisConfig = registerAs('redis', () => ({
   tls: process.env.REDIS_TLS === 'true',
 }));
 
+/**
+ * Entrada con Google. Solo hace falta el ID de cliente, que es público: el
+ * navegador recibe un token firmado por Google y la API comprueba la firma
+ * contra sus claves públicas. No hay secreto que guardar ni que rotar.
+ */
+export const googleConfig = registerAs('google', () => ({
+  clientId: process.env.GOOGLE_CLIENT_ID,
+}));
+
 export const jwtConfig = registerAs('jwt', () => ({
   accessSecret: process.env.JWT_ACCESS_SECRET as string,
   refreshSecret: process.env.JWT_REFRESH_SECRET as string,
@@ -102,6 +111,7 @@ export const configurations = [
   databaseConfig,
   redisConfig,
   jwtConfig,
+  googleConfig,
   mediaConfig,
   storageConfig,
 ];
